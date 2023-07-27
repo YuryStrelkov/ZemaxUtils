@@ -1,5 +1,5 @@
 from collections import namedtuple
-from ZFile import ZFileRaw
+from .z_file import ZFileRaw
 
 
 class ZSequentialSettings(namedtuple('ZSequentialSettings',

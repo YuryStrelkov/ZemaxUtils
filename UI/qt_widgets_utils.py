@@ -1,7 +1,7 @@
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QLineEdit, QComboBox, QSizePolicy, \
     QGroupBox
-from typing import Tuple, List
+from typing import Tuple, List, Union
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 
 """
@@ -235,7 +235,7 @@ def init_text_field(parent: QWidget = None, label_str: str = "text field",
 
 
 def init_drop_down(parent: QWidget = None, label_str: str = "drop down",
-                   values: List[str] | None = None) -> Tuple[QWidget, QComboBox]:
+                   values: Union[List[str], None] = None) -> Tuple[QWidget, QComboBox]:
     container = QWidget(parent)  # контейнер с горизонтальным размещением
     # container.setStyleSheet("border:0px;}")
     label = QLabel(f"{label_str} : ")  # лейбл с заголовком элемента интерфейса
@@ -250,7 +250,7 @@ def init_drop_down(parent: QWidget = None, label_str: str = "drop down",
 
 
 def buttons_group(parent: QWidget = None, label_str: str = "buttons group",
-                  buttons_str: List[str] | None = None, vert: bool = False) -> Tuple[QWidget, List[QPushButton]]:
+                  buttons_str: Union[List[str], None] = None, vert: bool = False) -> Tuple[QWidget, List[QPushButton]]:
     container = QWidget(parent)  # контейнер с вертикальным размещением
     # container.setStyleSheet(container.styleSheet() + "border:0px;")
     layout = QVBoxLayout()

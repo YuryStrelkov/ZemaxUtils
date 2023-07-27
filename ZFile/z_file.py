@@ -1,7 +1,6 @@
 from typing import List, Dict, Union
 import os.path
 import os
-
 from TaskBuilder import SchemeParams
 from .z_surface import ZFileField
 from .z_file_raw import ZFileRaw
@@ -28,7 +27,7 @@ class ZFile:
         self._header_params: Dict[str, ZFileField] = {}
         self._footer_fields: Dict[str, ZFileField] = {}
         self._fields: Union[ZFields, None] = None
-        self._waves: Union[ZWaves, None]= None
+        self._waves: Union[ZWaves, None] = None
         self.load(file_path)
 
     @property
@@ -109,6 +108,21 @@ class ZFile:
 
     def apply_settings(self, params: SchemeParams):
         surfaces = params.surf_params
+        if params.fields is not None:
+            fields_data = [v.to_list for v in params.fields.fields]
+            for index, value in enumerate(fields_data):
+                self.fields.xfln[index] = value[0]
+                self.fields.yfln[index] = value[1]
+                self.fields.fwgn[index] = value[2]
+                self.fields.vdxn[index] = value[3]
+                self.fields.vdyn[index] = value[4]
+                self.fields.vcxn[index] = value[5]
+                self.fields.vcyn[index] = value[6]
+                self.fields.vann[index] = value[7]
+
+        # if params.waves is not None:
+        #     self._waves = [ZWaves(v.lam, v.weight) for v in params.waves]
+
         remap = params.surf_remap
         for surf in surfaces:
             surf_id = surf.surf_n

@@ -1,12 +1,14 @@
-from ZFile.z_file_raw import ZFileRaw
 from collections import namedtuple
+from typing import Union
+
+from .z_file import ZFileRaw
 
 
 class ZWaves(namedtuple('ZFileRaw', 'wavelengths, weights')):
 
     ZEMAX_MAX_WL_COUNT = 24
 
-    def __new__(cls, z_file: ZFileRaw):
+    def __new__(cls, z_file: Union[ZFileRaw, None]):
         assert 'FTYP' in z_file.header_params
         assert 'WAVM' in z_file.header_params
         n_wl = min(int(z_file.header_params['FTYP'][0].split(' ')[3]), ZWaves.ZEMAX_MAX_WL_COUNT)

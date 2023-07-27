@@ -23,17 +23,17 @@
 		"fields":
 		{
 		  "fields_type": 0,
-		  "fields": [{ "angle_x": 0.0, "angle_y":  0.0, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y":  0.7, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y":  1.6, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y":  2.0, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y":  2.3, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y":  2.5, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y": -0.7, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y": -1.6, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y": -2.0, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y": -2.3, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": 0.0, "angle_y": -2.5, "weight": 0.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
+		  "fields": [{ "angle_x": 0.0, "angle_y":  0.0, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y":  0.7, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y":  1.6, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y":  2.0, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y":  2.3, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y":  2.5, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y": -0.7, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y": -1.6, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y": -2.0, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y": -2.3, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_x": 0.0, "angle_y": -2.5, "weight": 0.760, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
 		},
 		"waves":
 		[

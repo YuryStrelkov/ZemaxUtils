@@ -12,7 +12,7 @@ class Wave(namedtuple('Wave', 'lam, weight')):
         return f"{{ \"lam\" : {self.lam}, \"weight\" : {self.weight} }}"
 
 
-def load_waves(json_node):
+def read_waves(json_node):
     if 'waves' not in json_node:
         return None
     waves = json_node['waves']

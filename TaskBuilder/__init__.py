@@ -3,6 +3,7 @@ from .surface_params import read_surfaces
 from .surface_params import SurfaceParams
 from .fields_params import FieldsParams
 from .scheme_params import SchemeParams
-from .waves_params import load_waves
+from .task_builder import TaskBuilder
+from .waves_params import read_waves
 from .fields_params import Field
 from .waves_params import Wave

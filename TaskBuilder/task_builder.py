@@ -1,11 +1,12 @@
 from typing import List, Tuple, Union
-from TaskBuilder import SchemeParams
+from .scheme_params import SchemeParams
 from ZFile import ZFile
 from os import path
 import subprocess
 import string
 import shutil
 import os
+
 
 COMMON_SCHEME_INFO = 1
 SCHEME_SPOT_DIAGRAM = 2
@@ -79,6 +80,11 @@ class TaskBuilder:
         self._task_results_directory: str = ""
         self.z_file_proto_src = z_file_proto_src
         self.task_file_src = task_file_scr
+
+    def _combine_task(self, other):
+        if not isinstance(other, TaskBuilder):
+            return
+
 
     @property
     def z_file_proto_src(self) -> str:

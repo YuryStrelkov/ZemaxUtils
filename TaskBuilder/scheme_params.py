@@ -1,8 +1,8 @@
 from .surface_params import SurfaceParams
 from .surface_params import read_surfaces
-from .fields_params import FieldsParams
+from .fields_params import FieldsParams, load_fields_params
 from typing import Dict, List, Union
-from .waves_params import Wave
+from .waves_params import Wave, read_waves
 import json
 import os
 
@@ -63,6 +63,8 @@ class SchemeParams:
     @classmethod
     def _read_scheme(cls, json_node):
         surfaces = read_surfaces(json_node)
+        waves = read_waves(json_node)
+        fields = load_fields_params(json_node)
         remap_surf = None
         description_short = "no description"
         description_long = "no description"
@@ -82,7 +84,7 @@ class SchemeParams:
                 except KeyError as _:
                     continue
 
-        return cls(surfaces, remap_surf, description_short, description_long)
+        return cls(surfaces, remap_surf, description_short, description_long, fields, waves)
 
     @staticmethod
     def _read_fields(cls, json_node):

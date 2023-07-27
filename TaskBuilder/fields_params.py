@@ -10,6 +10,10 @@ class Field(namedtuple('Field', 'angle_x, angle_y, weight, vdx, vdy, vcx, vcy, v
                 vdx: float = 0.0, vdy: float = 0.0, vcx: float = 0.0, vcy: float = 0.0, van: float = 0.0):
         return super().__new__(cls, angle_x, angle_y, weight, vdx, vdy, vcx, vcy, van)
 
+    @property
+    def to_list(self) -> List[float]:
+        return [v for v in self]
+
     def __str__(self):
         return f"{{ \"angle_x\" : {self.angle_x}, " \
                f"\"angle_y\" : {self.angle_x}, " \

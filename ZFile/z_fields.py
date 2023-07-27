@@ -1,6 +1,6 @@
-from typing import List, Dict, Any
 from collections import namedtuple
-from ZFile import ZFileRaw
+from typing import List, Dict, Any
+from .z_file import ZFileRaw
 
 
 class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, vcyn, vann')):
@@ -13,14 +13,22 @@ class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, 
     def __new__(cls, z_file: ZFileRaw):
         params = z_file.header_params
         ftyp = list(map(int,   params['FTYP'][0].split(' '))) if 'FTYP' in params else [0, 0, 4, 4, 0, 0, 0]
-        xfln = list(map(float, params['XFLN'][0].split(' '))) if 'XFLN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        yfln = list(map(float, params['YFLN'][0].split(' '))) if 'YFLN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        fwgn = list(map(float, params['FWGN'][0].split(' '))) if 'FWGN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        vdxn = list(map(float, params['VDXN'][0].split(' '))) if 'VDXN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        vdyn = list(map(float, params['VDYN'][0].split(' '))) if 'VDYN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        vcxn = list(map(float, params['VCXN'][0].split(' '))) if 'VCXN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        vcyn = list(map(float, params['VCYN'][0].split(' '))) if 'VCYN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        vann = list(map(float, params['VANN'][0].split(' '))) if 'VANN' in params else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        xfln = list(map(float, params['XFLN'][0].split(' '))) if 'XFLN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        yfln = list(map(float, params['YFLN'][0].split(' '))) if 'YFLN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        fwgn = list(map(float, params['FWGN'][0].split(' '))) if 'FWGN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        vdxn = list(map(float, params['VDXN'][0].split(' '))) if 'VDXN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        vdyn = list(map(float, params['VDYN'][0].split(' '))) if 'VDYN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        vcxn = list(map(float, params['VCXN'][0].split(' '))) if 'VCXN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        vcyn = list(map(float, params['VCYN'][0].split(' '))) if 'VCYN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        vann = list(map(float, params['VANN'][0].split(' '))) if 'VANN' in params else \
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         return super().__new__(cls, ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, vcyn, vann)
 
@@ -37,7 +45,7 @@ class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, 
                 'Number Of Fields': self.ftyp[2]}
     
     @property
-    def n_fields(self)  -> int:
+    def n_fields(self) -> int:
         return self.ftyp[2]
     
     def __str__(self):
