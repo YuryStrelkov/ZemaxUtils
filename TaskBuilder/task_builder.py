@@ -1,5 +1,5 @@
-from typing import List, Tuple, Union
 from .scheme_params import SchemeParams
+from typing import List, Tuple, Union
 from ZFile import ZFile
 from os import path
 import subprocess
@@ -85,7 +85,6 @@ class TaskBuilder:
         if not isinstance(other, TaskBuilder):
             return
 
-
     @property
     def z_file_proto_src(self) -> str:
         return self._z_file_proto_src
@@ -156,20 +155,21 @@ class TaskBuilder:
                 if file.endswith(("json", "txt", "zmx", "ses", "TXT", "ZMX", "SES")):
                     os.remove(self._task_results_directory + file)
 
-        task_files = [self._task_working_directory + "zemax_proto_file.zmx"]
-        self._z_file.save(task_files[-1])
+        task_files = ["zemax_proto_file.zmx"]
+        self._z_file.save(self._task_working_directory + task_files[-1])
         with open(self._task_results_directory + "zemax_proto_file.json", "wt"):
             pass
 
         for task in self._task_args:
-            task_files.append(self._task_working_directory + task.description_short.replace(" ", "_") + ".zmx")
+            task_files.append(task.description_short.replace(" ", "_").replace(",", "") + ".zmx")
             self._z_file.apply_settings(task)
-            self._z_file.save(task_files[-1])
-            with open(self._task_results_directory + task.description_short.replace(" ", "_") + ".json", "wt"):
+            self._z_file.save(self._task_working_directory + task_files[-1])
+            with open(self._task_results_directory + task.description_short.replace(" ", "_").replace(",", "") + ".json", "wt"):
                 pass
         with open(self._task_working_directory + "SCHEMES_LIST.TXT", "wt") as task_list:
-            print('\n'.join(v + " " + " ".join("1" if task_info & v == v
-                                               else "0" for v in (1, 2, 4, 8)) for v in task_files), file=task_list)
+            print(f'root: {self._task_working_directory}', file=task_list)
+            print(f'compute_settings: {" ".join("1" if task_info & v == v else "0" for v in (1, 2, 4, 8))}', file=task_list)
+            print('\n'.join(f"file: {v}" for v in task_files), file=task_list)
 
         return True
 
@@ -184,3 +184,11 @@ class TaskBuilder:
         subprocess.run([zmx_exe, self._z_file_proto_src])
         return True
 
+# root: D:\Github\ZemaxUtils\Tasks\MonochromeDeformed\Task\
+# compute_settings: 1 0 0 0
+# file: zemax_proto_file.zmx
+# file: deformed_scheme_monochrome_angle_y_=_1.07.zmx
+# file: deformed_scheme_monochrome_angle_y_=_1.072.zmx
+# file: deformed_scheme_monochrome_angle_y_=_1.074.zmx
+# file: deformed_scheme_monochrome_angle_y_=_1.076.zmx
+# file: deformed_scheme_monochrome_angle_y_=_1.078.zmx

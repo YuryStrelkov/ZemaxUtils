@@ -270,12 +270,13 @@ class SpotDiagram(namedtuple("SpotDiagram", "FIELD_ID, WAVE_ID, POINTS, R_RMS, R
         return 1
 
 
-class PSFDiagram(namedtuple("SpotDiagram", "FIELD_ID, WAVE_ID, N_POINTS, PSF_DELTA, PSF_DATA, PSF_MAX")):
+class PSFDiagram(namedtuple("SpotDiagram", "FIELD_ID, WAVE_ID, N_POINTS, CENTER, PSF_DELTA, PSF_DATA, PSF_MAX")):
     __slots__ = ()
 
     MUM_TO_MM = 0.001
 
-    def __new__(cls, field_id: int, wave_id: int, n_points: int, psf_delta: float, psf_data: List[float]):
+    def __new__(cls, field_id: int, wave_id: int, n_points: int, psf_delta: float,
+                position: Vector2, psf_data: List[float]):
         n_samples = int(math.sqrt(len(psf_data) // 4))
         data = np.array(psf_data).reshape((n_samples, n_samples, 4))
         i, j = np.unravel_index(data[:, :, 0].argmax(), (n_samples, n_samples))
@@ -283,7 +284,19 @@ class PSFDiagram(namedtuple("SpotDiagram", "FIELD_ID, WAVE_ID, N_POINTS, PSF_DEL
         max_val = Vector3((j - n_samples * 0.5) * psf_delta * PSFDiagram.MUM_TO_MM,
                           (i - n_samples * 0.5) * psf_delta * PSFDiagram.MUM_TO_MM, data[i, j, 0])
 
-        return super().__new__(cls, field_id, wave_id, n_points, psf_delta, data, max_val)
+        return super().__new__(cls, field_id, wave_id, n_points, position, psf_delta, data, max_val)
+
+    @property
+    def relative_intensity(self) -> float:
+        return self.PSF_MAX.z
+
+    @property
+    def center_world_space(self) -> Vector2:
+        return Vector2(self.PSF_MAX.x + self.CENTER.x, self.PSF_MAX.y + self.CENTER.y)
+
+    @property
+    def center_local_space(self) -> Vector2:
+        return Vector2(self.PSF_MAX.x, self.PSF_MAX.y)
 
     @property
     def width(self) -> float:
@@ -464,7 +477,8 @@ def read_psf(json_node) -> Union[List[PSFDiagram], None]:
             wave_id = int(n[_WAVE_ID])
             n_points = int(n[_N_POINTS])
             delta = float(n[_PSF_DELTA])
-            spots.append(PSFDiagram(field_id, wave_id, n_points, delta, [float(v) for v in n[_PSF_DATA]]))
+            center = Vector2(float(n['CENTER'][_X]), float(n['CENTER'][_Y]))
+            spots.append(PSFDiagram(field_id, wave_id, n_points, delta, center, [float(v) for v in n[_PSF_DATA]]))
         except KeyError as _:
             continue
         except ValueError as _:

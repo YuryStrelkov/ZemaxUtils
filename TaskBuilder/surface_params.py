@@ -119,6 +119,8 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
 
 def read_surfaces(scheme_node) -> List[SurfaceParams]:
     scheme = []
+    if 'scheme' not in scheme_node:
+        return scheme
     for node in scheme_node['scheme']:
         if 'surf_n' not in node:
             raise RuntimeError("Incomplete surface definition :: surf_n does not present in surface")

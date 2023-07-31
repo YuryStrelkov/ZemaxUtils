@@ -1,3 +1,4 @@
+from Geometry import poly_fit, poly_regression
 from .result_visual_settings import ResultVisualSettings
 from .result_components import MTFResponse
 from .result_components import SpotDiagram
@@ -20,7 +21,7 @@ def _re_append_text(axes, text):
 
 def _append_legend_twice(axes, results: ResultFile, response: Union[MTFResponse, PSFDiagram, SpotDiagram]):
     ax_legend = axes.get_legend()
-    legend = [] if ax_legend is None else [v.get_text() for v in ax_legend.texts]
+    legend = [] if ax_legend is None else [t.get_text() for t in ax_legend.texts]
     if response.WAVE_ID == -1:
         legend.append(f"S, Ax =  {str(results.fields[response.FIELD_ID].FLDX):5>}, lam = ALL")
         legend.append(f"T, Ay =  {str(results.fields[response.FIELD_ID].FLDY):5>}, lam = ALL")
@@ -166,7 +167,7 @@ def _show_spot(results: ResultFile, field_id: int, wave_id: int, axes=None, box_
         Artist.remove(axes.texts[-1])
     x0, y0, avg_r, rms_r = _spot_geo_info(results, spot)
     axes.set_aspect('equal', 'box')
-    text = f"GEO R = {avg_r:<.4f} [mm], RMS R = {rms_r:<.4f} [mm]\n" \
+    text = f"GEO R = {avg_r:<.4f} [mm],\nRMS R = {rms_r:<.4f} [mm]\n" \
            f"СENTER, [mm] = {{{x0:>.4f}, {y0:>.4f}}}\n" \
            f"BOX SIZE, [mm] = {{{box_size:<.2f}, {box_size:<.2f}}}"
     axes.set_yticklabels([])
@@ -304,11 +305,11 @@ def _show_psf_cross_section(results: ResultFile, field_id: int, wave_id: int, ax
     if field_id == -1:
         for item_id, spt in enumerate(psf):
             show_psf_cross_sect_data(results, spt, axes, color[item_id], legend_info=1)
-            axes.set_title(f"FFT MTF | WL: {wave_id} | FIELD: 'ALL'",  y=1.0, pad=-14)
+            axes.set_title(f"FFT PSF | WL: {wave_id} | FIELD: 'ALL'",  y=1.0, pad=-14)
     if wave_id == -1:
         for item_id, spt in enumerate(psf):
             show_psf_cross_sect_data(results, spt, axes, color[item_id], legend_info=0)
-            axes.set_title(f"FFT MTF | WL: 'ALL' | FIELD: {field_id}",  y=1.0, pad=-14)
+            axes.set_title(f"FFT PSF | WL: 'ALL' | FIELD: {field_id}",  y=1.0, pad=-14)
     return axes.figure
 
 
@@ -360,6 +361,28 @@ def draw_psf_cross_section(results: ResultFile, visual_settings: ResultVisualSet
         field_id = min(1 + int(results.n_fields * axes_id / visual_settings.subplots_count), results.n_fields)
         _show_psf_cross_section(results, field_id, -1, axes[row, col])
         axes[row, col].grid(True)
+    if show:
+        plt.show()
+    return fig
+
+
+def draw_pos_from_angle(results, visual_settings: ResultVisualSettings, direction="y", show: bool = True):
+    _dir = True if direction == "y" else False
+    fig, axes = visual_settings.build_figure()
+    axes.set_xlabel("ang, [deg]")
+    axes.set_ylabel("y, [mm]" if _dir else "x, [mm]")
+    legend = []
+    if results is not None:
+        for coord in results.cords:
+            angles = np.linspace(coord.AY_MIN, coord.AY_MAX, coord.N_ANGLES_Y) \
+                if _dir else np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
+            coord_slice = coord.y_slice if _dir else coord.x_slice
+            wl = results.wavelengths[coord.WAVE_ID - 1]
+            ys = np.linspace(angles[0], angles[-1], 128)
+            line_sag = axes.plot(poly_fit(ys, angles, coord_slice, 5), ys)
+
+    axes.grid(True)
+    axes.legend(legend, loc=2)
     if show:
         plt.show()
     return fig

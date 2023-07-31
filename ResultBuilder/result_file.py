@@ -90,8 +90,9 @@ class ResultFile:
         if not os.path.exists(file_src):
             print(f"file at path {file_src} does not exists...")
             return
-        change_encoding(file_src, "utf-8")
-        with open(file_src, "rt") as report:
+        self.scheme_src = file_src
+        change_encoding(self.scheme_src, "utf-8")
+        with open(self.scheme_src, "rt") as report:
             _json = json.load(report)
             self.fields = read_fields(_json)
             self.chief_rays = read_chief_rays(_json)
@@ -235,51 +236,111 @@ class ResultFile:
         return [b for a, b in slices]
 
     @property
-    def x_image_pos_per_angle(self):
-        fields = [[v.CENTER for v in self.spots if v.WAVE_ID == wave_id + 1]for wave_id in range(len(self.wavelengths))]
+    def x_image_pos_per_angle(self) -> List[np.ndarray]:
+        """
+            Возвращает список массиовов х-координат центров спот диаграм. Координаты отсортированы по возрастанию.
+            Каждый массив соответствует длине волны с тем же индексом, что и массив в списке.
+        """
+        fields = [[v.CENTER for v in self.spots if v.WAVE_ID == wave_id + 1]for wave_id in range(self.n_wave_lengths)]
         fields = [sorted(v, key=lambda arg: arg.x)for v in fields]
         return [np.array([v.x for v in field])for field in fields]
 
     @property
-    def y_image_pos_per_angle(self):
-        fields = [[v.CENTER for v in self.spots if v.WAVE_ID == wave_id + 1]for wave_id in range(len(self.wavelengths))]
+    def y_image_pos_per_angle(self) -> List[np.ndarray]:
+        """
+            Возвращает список массивов у-координат центров спот диаграмм. Координаты отсортированы по возрастанию.
+            Каждый массив соответствует длине волны с тем же индексом, что и массив в списке.
+        """
+        fields = [[v.CENTER for v in self.spots if v.WAVE_ID == wave_id + 1]for wave_id in range(self.n_wave_lengths)]
         fields = [sorted(v, key=lambda arg: arg.y)for v in fields]
         return [np.array([v.y for v in field])for field in fields]
 
     @property
-    def x_image_pos_per_angle_from_psf(self):
-        fields = [[Vector2(v.PSF_MAX.x, v.PSF_MAX.y) + self.get_chief_ray(vi + 1, wave_id + 1).POSITION
-                   for vi, v in enumerate(self.get_psf(-1, wave_id + 1))] for wave_id in range(len(self.wavelengths))]
-        fields = [sorted(v, key=lambda arg: arg.x)for v in fields]
-        return [np.array([v.x for v in field])for field in fields]
+    def x_image_pos_per_angle_from_psf(self) -> List[np.ndarray]:
+        """
+            Возвращает список массивов х-координат максимума интенсивности функции рассеяния точки.
+            Координаты отсортированы по возрастанию. Каждый массив соответствует длине волны с тем же
+            индексом, что и массив в списке.
+        """
+        # fields = [[Vector2(v.PSF_MAX.x, v.PSF_MAX.y) + self.get_chief_ray(vi + 1, wave_id + 1).POSITION
+        #            for vi, v in enumerate(self.get_psf(-1, wave_id + 1))] for wave_id in range(self.n_wave_lengths)]
+        # fields = [sorted(v, key=lambda arg: arg.x)for v in fields]
+        # return [np.array([v.x for v in field])for field in fields]
+        fields = [[v.center_world_space.x for v in self.psf_s if v.WAVE_ID == wave_id + 1]
+                  for wave_id in range(self.n_wave_lengths)]
+        return [np.array(sorted(v, key=lambda arg: arg)) for v in fields]
 
     @property
-    def y_image_pos_per_angle_from_psf(self):
-        fields = [[Vector2(v.PSF_MAX.x, v.PSF_MAX.y) + self.get_chief_ray(vi + 1, wave_id + 1).POSITION
-                   for vi, v in enumerate(self.get_psf(-1, wave_id + 1))] for wave_id in range(len(self.wavelengths))]
-        fields = [sorted(v, key=lambda arg: arg.y)for v in fields]
-        return [np.array([v.y for v in field])for field in fields]
+    def y_image_pos_per_angle_from_psf(self) -> List[np.ndarray]:
+        """
+            Возвращает список массивов y-координат максимума интенсивности функции рассеяния точки.
+            Координаты отсортированы по возрастанию. Каждый массив соответствует длине волны с тем же
+            индексом, что и массив в списке.
+        """
+        # fields = [[Vector2(v.PSF_MAX.x, v.PSF_MAX.y) + self.get_chief_ray(vi + 1, wave_id + 1).POSITION
+        #            for vi, v in enumerate(self.get_psf(-1, wave_id + 1))] for wave_id in range(self.n_wave_lengths)]
+        # fields = [sorted(v, key=lambda arg: arg.y)for v in fields]
+        # return [np.array([v.y for v in field])for field in fields]
+        fields = [[v.center_world_space.y for v in self.psf_s if v.WAVE_ID == wave_id + 1]
+                  for wave_id in range(self.n_wave_lengths)]
+        return [np.array(sorted(v, key=lambda arg: arg)) for v in fields]
 
     @property
-    def y_image_pos_per_angle_from_psf_avg(self):
+    def image_intensity_per_angle_from_psf(self) -> List[np.ndarray]:
+        """
+            Возвращает список массивов y-координат максимума интенсивности функции рассеяния точки.
+            Координаты отсортированы по возрастанию. Каждый массив соответствует длине волны с тем же
+            индексом, что и массив в списке.
+        """
+        # fields = [[Vector2(v.PSF_MAX.x, v.PSF_MAX.y) + self.get_chief_ray(vi + 1, wave_id + 1).POSITION
+        #            for vi, v in enumerate(self.get_psf(-1, wave_id + 1))] for wave_id in range(self.n_wave_lengths)]
+        # fields = [sorted(v, key=lambda arg: arg.y)for v in fields]
+        # return [np.array([v.y for v in field])for field in fields]
+        fields = [[v.center_world_space for v in self.psf_s if v.WAVE_ID == wave_id + 1]
+                  for wave_id in range(self.n_wave_lengths)]
+        fields = [sorted(v, key=lambda arg: arg.y) for v in fields]
+        return [np.array([v.y for v in field]) for field in fields]
+
+    @property
+    def y_image_pos_per_angle_from_psf_avg(self) -> np.ndarray:
+        """
+            Возвращает массив х-координат максимума интенсивности функции рассеяния точки,
+            усреднённого по всем длинам волн (усреднение не взвешанное).
+        """
         fields = self.y_image_pos_per_angle_from_psf
         scale  = 1.0 / len(fields)
         return np.array([scale * sum(i for i in v) for v in zip(*fields)])
 
     @property
-    def x_image_pos_per_angle_from_psf_avg(self):
+    def x_image_pos_per_angle_from_psf_avg(self) -> np.ndarray:
+        """
+            Возвращает массив y-координат максимума интенсивности функции рассеяния точки,
+            усреднённого по всем длинам волн (усреднение не взвешанное).
+        """
         fields = self.x_image_pos_per_angle_from_psf
         scale  = 1.0 / len(fields)
         return np.array([scale * sum(i for i in v) for v in zip(*fields)])
 
     @property
-    def psf_spot_centers_diff_y(self):
+    def psf_spot_centers_diff_y(self) -> List[np.ndarray]:
         psf  = self.y_image_pos_per_angle_from_psf
         spot = self.y_image_pos_per_angle
         return [np.array([s - p for s, p in zip(si, pi)])for si, pi in zip(spot, psf)]
 
     @property
-    def psf_spot_centers_diff_x(self):
+    def psf_spot_centers_diff_x(self) -> List[np.ndarray]:
         psf  = self.x_image_pos_per_angle_from_psf
         spot = self.x_image_pos_per_angle
         return [np.array([s - p for s, p in zip(si, pi)]) for si, pi in zip(spot, psf)]
+
+    @property
+    def fields_angles_x(self) -> np.ndarray:
+        return np.array([v.FLDX for v in self.fields.values()])
+
+    @property
+    def fields_angles_y(self) -> np.ndarray:
+        return np.array([v.FLDY for v in self.fields.values()])
+
+    @property
+    def fields_angles(self) -> np.ndarray:
+        return np.array([Vector2(v.FLDX, v.FLDY) for v in self.fields.values()])

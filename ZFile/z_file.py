@@ -119,6 +119,8 @@ class ZFile:
                 self.fields.vcxn[index] = value[5]
                 self.fields.vcyn[index] = value[6]
                 self.fields.vann[index] = value[7]
+        self._header_params.update({'NOTE': ZFileField(f'NOTE 0 {params.description_long}')})
+        self._header_params.update({'NAME': ZFileField(f'NAME {params.description_short}')})
 
         # if params.waves is not None:
         #     self._waves = [ZWaves(v.lam, v.weight) for v in params.waves]

@@ -67,8 +67,8 @@ class ResultVisualSettings:
         self._font_family:  str = "Times New Roman"
         self._plots_x:      int = 1
         self._plots_y:      int = 1
-        self._bounds: Vector4 = Vector4(0.05, 0.05, 0.95, 0.95)
-        self._spacing: Vector2 = Vector2(0.125, 0.125)
+        self._bounds: Vector4 = Vector4(0.1, 0.1, 0.98, 0.98)
+        self._spacing: Vector2 = Vector2(0.1, 0.1)
 
     @property
     def adjustment_args(self) -> Tuple[float, float, float, float, float, float]:
@@ -192,7 +192,7 @@ class ResultVisualSettings:
 
     @property
     def font(self) -> Dict[str, Any]:
-        return {'family': self._font_family, 'size': self._font_size}
+        return {'font.family': self._font_family, 'font.size': self._font_size}
 
     @property
     def units_scale(self) -> float:
@@ -226,7 +226,7 @@ class ResultVisualSettings:
 
     @font_size.setter
     def font_size(self, value: float) -> None:
-        assert isinstance(value, float)
+        assert isinstance(value, float) or isinstance(value, int)
         self._font_size = abs(value)
 
     @property
@@ -235,7 +235,7 @@ class ResultVisualSettings:
 
     @width.setter
     def width(self, value: float) -> None:
-        assert isinstance(value, float)
+        assert isinstance(value, float) or isinstance(value, int)
         self._frame_width = abs(value) / self.units_scale
 
     @property
@@ -244,7 +244,7 @@ class ResultVisualSettings:
 
     @height.setter
     def height(self, value: float) -> None:
-        assert isinstance(value, float)
+        assert isinstance(value, float) or isinstance(value, int)
         self._frame_height = abs(value) / self.units_scale
 
     def build_figure(self):
@@ -256,5 +256,8 @@ class ResultVisualSettings:
                             top=self.top,
                             wspace=self.w_space,
                             hspace=self.h_space)
-        plt.rc('font', **self.font)
+        plt.rcParams.update(self.font)
+        # for k in plt.rcParams:
+        #     print(k)
+
         return fig, axes

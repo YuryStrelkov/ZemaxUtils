@@ -40,6 +40,8 @@ PSF_IMG_DELTA    = CALD(5)
 SETVECSIZE POWR(POWR(2, PSF_SAMPLING) * 32, 2) * 2	
 COUNT = NFLD() * NWAV()
 COUNER = 0
+N_SURF = NSUR()
+MAX_FIELD = MAXF()
 PRINT PREFIX$
 PRINT "  ", $QUOTE(), "PSF", $QUOTE(), ":["
 FOR WAVE_ID = 1, NWAV(), 1
@@ -88,10 +90,16 @@ FOR WAVE_ID = 1, NWAV(), 1
 			  ENDIF
 			  N_POINTS  = vec1(0)
 			  PSF_DELTA = vec1(N_POINTS + 1)
-	
+			
+			  HX = FLDX(FIELD_ID)/MAX_FIELD
+			  HY = FLDY(FIELD_ID)/MAX_FIELD
+			  RAYTRACE HX, HY, 0, 0, PWAV(WAVE_ID)
+			  X_CHIEF = RAYX(N_SURF)
+			  Y_CHIEF = RAYY(N_SURF)
 			  PRINT "  {"
 			  PRINT "    ", $QUOTE(), "FIELD_ID", $QUOTE(), " :", FIELD_ID,","
 			  PRINT	"    ", $QUOTE(), "WAVE_ID", $QUOTE(), "  :", WAVE_ID ,","
+			  PRINT	"    ", $QUOTE(), "CENTER", $QUOTE(), ":{", $QUOTE(), "X", $QUOTE(), ": ", X_CHIEF, ", ", $QUOTE(), "Y", $QUOTE(), ": ", Y_CHIEF,"},"
 			  PRINT	"    ", $QUOTE(), "N_POINTS", $QUOTE(), " :", N_POINTS ,","
 			  PRINT	"    ", $QUOTE(), "PSF_DELTA", $QUOTE(), ":", PSF_DELTA ,","
 			  PRINT	"    ", $QUOTE(), "PSF_DATA", $QUOTE(), " : ["

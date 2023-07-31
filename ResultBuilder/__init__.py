@@ -31,3 +31,4 @@ from .results_renderer import show_spt_data
 from .results_renderer import draw_spot
 from .results_renderer import draw_mtf
 from .results_renderer import draw_psf
+from .results_renderer import draw_pos_from_angle
