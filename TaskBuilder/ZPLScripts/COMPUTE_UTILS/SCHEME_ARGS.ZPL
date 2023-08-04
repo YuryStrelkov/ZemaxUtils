@@ -115,7 +115,7 @@ PRINT "  ],"
 !!                                              !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 MAX_FIELD = MAXF()
-! prevent divide by zero bug
+!! PREVENT DIVIDE BY ZERO BUG
 IF (MAX_FIELD == 0.0) THEN MAX_FIELD = 1.0,
 N_SUR = NSUR()
 COUNT = NFLD() * NWAV()
@@ -147,40 +147,31 @@ PRINT "  ],"
 
 !! ИЩЕМ ГРАНИЦЫ ПОЛЯ ПО УГЛУ - ОТ МИНИМАЛЬНОГО К 
 !! МАКСИМАЛЬНОМУ ДЛЯ X И Y
-HX_MAX = -1E-32
-HY_MAX = -1E-32
-HX_MIN =  1E-32
-HY_MIN =  1E-32
+HX_MAX = -1E32
+HX_MIN =  1E32
+HY_MAX = -1E32
+HY_MIN =  1E32
 
 FOR FIELD_ID = 1, NFLD(), 1
     HX = FLDX(FIELD_ID)
 	HY = FLDY(FIELD_ID)
 	IF (HX_MAX < HX) THEN HX_MAX = HX 
-	IF (HY_MAX < HY) THEN HY_MAX = HY 
 	IF (HX_MIN > HX) THEN HX_MIN = HX 
+	IF (HY_MAX < HY) THEN HY_MAX = HY 
 	IF (HY_MIN > HY) THEN HY_MIN = HY
 NEXT FIELD_ID	
 
+
 !! ЧИТАЕМ КОЛИЧЕСТВО ТОЧЕК ПО X И Y 
-N_X_ANGLE_STEPS = 32 # CALD(1)
-N_Y_ANGLE_STEPS = 32 # CALD(2)
+N_X_ANGLE_STEPS = 16 # CALD(1)
+N_Y_ANGLE_STEPS = 16 # CALD(2)
 
-!! HX_MAX  = 0.9 * HX_MAX 
-!! HY_MAX  = 0.9 * HY_MAX 
-!! HX_MIN  = 0.9 * HX_MIN 
-!! HY_MIN  = 0.9 * HY_MIN
-
-HX_MAX  = 0.05 * HY_MAX 
-HY_MAX  = 0.9  * HY_MAX 
-HX_MIN  = 0.05 * HY_MIN 
-HY_MIN  = 0.9  * HY_MIN 
- 
 !! PREVENT DIVIDE BY ZERO BUG
-IF (N_X_ANGLE_STEPS <= 1.0) THEN N_X_ANGLE_STEPS = 32
-IF (N_Y_ANGLE_STEPS <= 1.0) THEN N_Y_ANGLE_STEPS = 32
+IF (N_X_ANGLE_STEPS <= 1.0) THEN N_X_ANGLE_STEPS = 16
+IF (N_Y_ANGLE_STEPS <= 1.0) THEN N_Y_ANGLE_STEPS = 16
 
-D_X_ANGLE = (HX_MAX - HX_MIN) / (N_X_ANGLE_STEPS)
-D_Y_ANGLE = (HY_MAX - HY_MIN) / (N_Y_ANGLE_STEPS)
+D_X_ANGLE = (HX_MAX - HX_MIN) / (N_X_ANGLE_STEPS - 1.0)
+D_Y_ANGLE = (HY_MAX - HY_MIN) / (N_Y_ANGLE_STEPS - 1.0)
 
 COUNT = N_X_ANGLE_STEPS * N_Y_ANGLE_STEPS
 
@@ -204,8 +195,8 @@ FOR WAVE_ID = 1, NWAV(), 1
 	FOR ANGLE_Y_ID = 1, N_Y_ANGLE_STEPS, 1
 		AX = HX_MIN
 		FOR ANGLE_X_ID = 1, N_X_ANGLE_STEPS, 1
-			hx = AX/MAX_FIELD
-			hy = AY/MAX_FIELD
+			hx = AX / MAX_FIELD
+			hy = AY / MAX_FIELD
 			RAYTRACE hx, hy, 0, 0, PWAV(WAVE_ID)
 			PRINT "      {",
 			PRINT "", $QUOTE(), "AX", $QUOTE(), " : ", AX, ", ",
@@ -241,25 +232,26 @@ PRINT "  ", $QUOTE(), "RAY_VIGNETTING", $QUOTE(), ":"
 PRINT "  ["
 FOR WAVE_ID = 1, NWAV(), 1
 	PRINT "    {"
-	PRINT "    ", $QUOTE(), "PX_MIN", $QUOTE(), "     : ", HX_MIN, ","
-	PRINT "    ", $QUOTE(), "PX_MAX", $QUOTE(), "     : ", HX_MAX, "," 
-	PRINT "    ", $QUOTE(), "PY_MIN", $QUOTE(), "     : ", HY_MIN, ","
-	PRINT "    ", $QUOTE(), "PY_MAX", $QUOTE(), "     : ", HY_MAX, "," 
+	PRINT "    ", $QUOTE(), "PX_MIN", $QUOTE(), "     : ", -1.0, ","
+	PRINT "    ", $QUOTE(), "PX_MAX", $QUOTE(), "     : ",  1.0, "," 
+	PRINT "    ", $QUOTE(), "PY_MIN", $QUOTE(), "     : ", -1.0, ","
+	PRINT "    ", $QUOTE(), "PY_MAX", $QUOTE(), "     : ",  1.0, "," 
 	PRINT "    ", $QUOTE(), "N_X", $QUOTE(), "        : ", N_X_ANGLE_STEPS, ","
 	PRINT "    ", $QUOTE(), "N_Y", $QUOTE(), "        : ", N_Y_ANGLE_STEPS, "," 
 	PRINT "    ", $QUOTE(), "WAVE_ID", $QUOTE(), "    : ", WAVE_ID , ","
 	PRINT "    ", $QUOTE(), "VIG_PER_POS", $QUOTE(), ": ["
 	COUNER = 0
-	hy = -1
-	D_X_ANGLE = 2.0 / (N_Y_ANGLE_STEPS - 1)
-	D_Y_ANGLE = 2.0 / (N_X_ANGLE_STEPS - 1)
+	PUPIL_SIZE = 0.9
+	PY = -PUPIL_SIZE
+	D_X_ANGLE = 2.0 * PUPIL_SIZE / (N_Y_ANGLE_STEPS - 1)
+	D_Y_ANGLE = 2.0 * PUPIL_SIZE / (N_X_ANGLE_STEPS - 1)
 	FOR ANGLE_Y_ID = 1, N_Y_ANGLE_STEPS, 1
-		hx = -1
+		PX = -PUPIL_SIZE
 		FOR ANGLE_X_ID = 1, N_X_ANGLE_STEPS, 1
-			RAYTRACE 0, 0, hx, hy,  PWAV(WAVE_ID)
+			RAYTRACE 0, 0, PX, PY,  PWAV(WAVE_ID)
 			PRINT "      {",
-			PRINT "", $QUOTE(), "PX", $QUOTE(), "   : ", hx, ",",
-			PRINT "", $QUOTE(), "PY", $QUOTE(), "   : ", hy, ",",
+			PRINT "", $QUOTE(), "PX", $QUOTE(), "   : ", PX, ",",
+			PRINT "", $QUOTE(), "PY", $QUOTE(), "   : ", PY, ",",
 			PRINT "", $QUOTE(), "X",  $QUOTE(), "   : ", RAYX(N_SUR), ",",
 			PRINT "", $QUOTE(), "Y",  $QUOTE(), "   : ", RAYY(N_SUR), ",",
 			PRINT "", $QUOTE(), "RAY_V", $QUOTE(), ": ", RAYV(), 			
@@ -270,9 +262,9 @@ FOR WAVE_ID = 1, NWAV(), 1
 				PRINT "}"
 				PRINT "      ]"
 			ENDIF
-			hx = hx + D_X_ANGLE
+			PX = PX + D_X_ANGLE
 		NEXT ANGLE_X_ID
-		hy = hy + D_Y_ANGLE
+		PY = PY + D_Y_ANGLE
 	NEXT ANGLE_Y_ID
 	IF (WAVE_ID != NWAV())
 		PRINT "    },"
@@ -285,6 +277,7 @@ PRINT "  ],"
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!                                              !!
 !!                 ПРОПУСКАНИЕ                  !!
+!!                И ПОЛЯРИЗАЦИЯ                 !!
 !!                                              !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -293,6 +286,8 @@ PRINT "  ", $QUOTE(), "RAY_POL_FIELD", $QUOTE(), ":"
 PRINT "  ["
 
 MAX_FIELD = MAXF()
+D_X_ANGLE = (HX_MAX - HX_MIN) / (N_X_ANGLE_STEPS - 1.0)
+D_Y_ANGLE = (HY_MAX - HY_MIN) / (N_Y_ANGLE_STEPS - 1.0)
 
 FOR WAVE_ID = 1, NWAV(), 1
 	PRINT "    {"
@@ -316,35 +311,35 @@ FOR WAVE_ID = 1, NWAV(), 1
 			PRINT "      {"
 			PRINT "       ", $QUOTE(), "INTENSITY", $QUOTE(), "         : ", vec2(1), "," 
 			PRINT "       ", $QUOTE(), "E_REAL", $QUOTE(), "            : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(2), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(3), ",",
-			PRINT           $QUOTE(), "z", $QUOTE(), ": ", vec2(4), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(2), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(3), ",",
+			PRINT           $QUOTE(), "Z", $QUOTE(), ": ", vec2(4), "},"
 			!!  
 			PRINT "       ", $QUOTE(), "E_IMAG", $QUOTE(), "            : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(5), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(6), ",",
-			PRINT           $QUOTE(), "z", $QUOTE(), ": ", vec2(7), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(5), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(6), ",",
+			PRINT           $QUOTE(), "Z", $QUOTE(), ": ", vec2(7), "},"
 			!!  
 			PRINT "       ", $QUOTE(), "S_REFLECTION", $QUOTE(), "      : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(8), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(9), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(8), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(9), "},"
 			!! 
 			PRINT "       ", $QUOTE(), "S_TRANSMISSION", $QUOTE(), "    : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(10), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(11), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(10), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(11), "},"
 			!! 
 			PRINT "       ", $QUOTE(), "P_REFLECTION", $QUOTE(), "      : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(12), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(13), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(12), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(13), "},"
 			!! 
 			PRINT "       ", $QUOTE(), "P_TRANSMISSION", $QUOTE(), "    : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(14), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(15), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(14), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(15), "},"
 			!!  
 			PRINT "       ", $QUOTE(), "PHASE", $QUOTE(), "             : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(16), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(17), ",",
-			PRINT           $QUOTE(), "z", $QUOTE(), ": ", vec2(18), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(16), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(17), ",",
+			PRINT           $QUOTE(), "Z", $QUOTE(), ": ", vec2(18), "},"
 			!!  
 			PRINT "       ", $QUOTE(), "POL_ELLIPSE", $QUOTE(), "       : {",
 			PRINT           $QUOTE(), "MAJOR_AXIS", $QUOTE(), ": ", vec2(19), ",",
@@ -352,20 +347,20 @@ FOR WAVE_ID = 1, NWAV(), 1
 			PRINT           $QUOTE(), "ANGLE", $QUOTE(), ": ", vec2(21), "},"
 			!!  
 			PRINT "       ", $QUOTE(), "S_AMP_REFLECTION", $QUOTE(), "  : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(23), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(24), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(23), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(24), "},"
 			!! 
 			PRINT "       ", $QUOTE(), "S_AMP_TRANSMISSION", $QUOTE(), ": {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(25), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(26), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(25), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(26), "},"
 			!!  
 			PRINT "       ", $QUOTE(), "P_AMP_REFLECTION", $QUOTE(), "  : {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(27), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(28), "},"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(27), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(28), "},"
 			!! 
 			PRINT "       ", $QUOTE(), "P_AMP_TRANSMISSION", $QUOTE(), ": {",
-			PRINT           $QUOTE(), "x", $QUOTE(), ": ", vec2(29), ",",
-			PRINT           $QUOTE(), "y", $QUOTE(), ": ", vec2(30), "}"
+			PRINT           $QUOTE(), "X", $QUOTE(), ": ", vec2(29), ",",
+			PRINT           $QUOTE(), "Y", $QUOTE(), ": ", vec2(30), "}"
 			COUNER = COUNER + 1
 			IF (COUNT != COUNER)
 				PRINT "      },"

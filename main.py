@@ -1,7 +1,4 @@
-import os.path
-
 from DocxBuilder.report import Report
-from Geometry import *
 from ResultBuilder import *
 from TaskBuilder import *
 from ZFile import COMMON_SCHEME_INFO
@@ -44,7 +41,7 @@ def build_matrices():
     z_task_dir = r"D:\Github\ZemaxUtils\Tasks\Polychrome"
     task = TaskBuilder(z_file_src, z_task_src)
     task.create_task(z_task_dir)
-    # task.run_task()
+    task.run_task()
     # z_task_src = r"D:\Github\ZemaxUtils\ZemaxScemesSettings\fields_monochrome_real.json"
     # z_task_dir = r"D:\Github\ZemaxUtils\Tasks\MonochromeReal"
     # task = TaskBuilder(z_file_src, z_task_src)
@@ -68,26 +65,55 @@ def build_and_run_task_from_settings_list():
 if __name__ == "__main__":
     # build_matrices()
     # exit()
-    rep = Report()
     results = ResultFile()
-    results.load(r'D:\Github\ZemaxUtils\Tasks\Monochrome\Task\Results\ideal_scheme_monochrome_angle_y_=_-1.074.json')
-    rep.update(results)
-    results.load(r'D:\Github\ZemaxUtils\Tasks\Monochrome\Task\Results\real_scheme_monochrome_angle_y_=_-1.074.json')
-    rep.update(results)
-    results.load(r'D:\Github\ZemaxUtils\Tasks\Monochrome\Task\Results\deformed_scheme_monochrome_angle_y_=_-1.074.json')
-    rep.update(results)
 
-    results.load(r'D:\Github\ZemaxUtils\Tasks\Polychrome\Task\Results\ideal_scheme_polychrome_angle_y_=_1.074.json')
-    rep.update(results)
-    results.load(r'D:\Github\ZemaxUtils\Tasks\Polychrome\Task\Results\real_scheme_polychrome_angle_y_=_1.074.json')
-    rep.update(results)
-    results.load(r'D:\Github\ZemaxUtils\Tasks\Polychrome\Task\Results\deformed_scheme_polychrome_angle_y_=_1.074.json')
-    rep.update(results)
+    root_dir = "E:\\Github\\ZemaxUtils\\ZemaxUtils\\Tasks\\"
+    mono_subdir = "Monochrome\\Task\\Results\\"
+    poly_subdir = "Polychrome\\Task\\Results\\"
+    ##################################################
+    rep = Report()
+    total_rep = Report()
+    total_rep.images_count = 10
+    total_rep.tables_count = 17
+    results.load(f'{root_dir}{mono_subdir}ideal_scheme_monochrome_angle_y_=_-1.074.json')
+    rep.update(results, True)
+    total_rep.update(results, True)
+    rep.save('ideal_scheme_monochrome')
 
-    rep.save('report')
+    ##################################################
+    rep = Report()
+    results.load(f'{root_dir}{mono_subdir}real_scheme_monochrome_angle_y_=_-1.074.json')
+    rep.update(results, True)
+    total_rep.update(results, True)
+    rep.save('real_scheme_monochrome')
+    ##################################################
+    rep = Report()
+    results.load(f'{root_dir}{mono_subdir}deformed_scheme_monochrome_angle_y_=_-1.074.json')
+    rep.update(results, True)
+    total_rep.update(results, True)
+    rep.save('deformed_scheme_monochrome')
+
+    ##################################################
+    rep = Report()
+    results.load(f'{root_dir}{poly_subdir}ideal_scheme_polychrome_angle_y_=_1.074.json')
+    rep.update(results, True)
+    total_rep.update(results, True)
+    rep.save('ideal_scheme_polychrome')
+
+    ##################################################
+    rep = Report()
+    results.load(f'{root_dir}{poly_subdir}real_scheme_polychrome_angle_y_=_1.074.json')
+    rep.update(results, True)
+    total_rep.update(results, True)
+    rep.save('real_scheme_polychrome')
+
+    ##################################################
+    rep = Report()
+    results.load(f'{root_dir}{poly_subdir}deformed_scheme_polychrome_angle_y_=_1.074.json')
+    rep.update(results, True)
+    total_rep.update(results, True)
+    rep.save('deformed_scheme_polychrome')
+    total_rep.save('total_report')
+
     print(results.wavelengths_weights)
     print(results.wavelengths)
-    # build_polychrome_matrix()
-    # build_monochrome_matrix()
-    # build_and_run_task_from_settings_list()
-

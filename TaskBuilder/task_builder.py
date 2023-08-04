@@ -155,10 +155,10 @@ class TaskBuilder:
                 if file.endswith(("json", "txt", "zmx", "ses", "TXT", "ZMX", "SES")):
                     os.remove(self._task_results_directory + file)
 
-        task_files = ["zemax_proto_file.zmx"]
-        self._z_file.save(self._task_working_directory + task_files[-1])
-        with open(self._task_results_directory + "zemax_proto_file.json", "wt"):
-            pass
+        task_files = []  # ["zemax_proto_file.zmx"]
+        # self._z_file.save(self._task_working_directory + task_files[-1])
+        # with open(self._task_results_directory + "zemax_proto_file.json", "wt"):
+        #     pass
 
         for task in self._task_args:
             task_files.append(task.description_short.replace(" ", "_").replace(",", "") + ".zmx")

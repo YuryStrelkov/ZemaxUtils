@@ -145,8 +145,6 @@ class Vector2(namedtuple('Vector2', 'x, y')):
         db = cls(pt4.x - pt3.x, pt4.y - pt3.y)
         det = Vector2.cross(da, db)
         if abs(det) < 1e-5:
-            # if Vector2.overlay(pt1, pt2, pt3, pt4):
-            #     return sum((pt1, pt2, pt3, pt4)) * 0.25
             return None
         det = 1.0 / det
         x = Vector2.cross(pt1, da)

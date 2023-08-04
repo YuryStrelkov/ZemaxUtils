@@ -344,3 +344,15 @@ class ResultFile:
     @property
     def fields_angles(self) -> np.ndarray:
         return np.array([Vector2(v.FLDX, v.FLDY) for v in self.fields.values()])
+
+    def vignetting_info(self, wave_id: int = -1):
+        pretenders = [v for v in self.vignetting if v.WAVE_ID == wave_id] if wave_id != -1 else self.vignetting
+        if len(pretenders) == 0:
+            return None
+        vignetting = []
+        for vig in pretenders:
+            pupil_x, pupil_y = vig.pupil_coordinates
+            vignetting.append({'wave_id': vig.WAVE_ID, 'pupil_x': pupil_x,
+                               'pupil_y': pupil_y, 'vignetting': vig.vignetting})
+        return vignetting
+

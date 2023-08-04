@@ -4,6 +4,12 @@ from collections import namedtuple
 import numpy as np
 import math
 
+_N_X = "N_X"
+_N_Y = "N_Y"
+_PX_MIN = "PX_MIN"
+_PX_MAX = "PX_MAX"
+_PY_MIN = "PY_MIN"
+_PY_MAX = "PY_MAX"
 _AX_MIN = "AX_MIN"
 _AX_MAX = "AX_MAX"
 _AY_MIN = "AY_MIN"
@@ -19,9 +25,7 @@ _AX = "AX"
 _AY = "AY"
 _X = "X"
 _Y = "Y"
-_x = "x"
-_y = "y"
-_z = "z"
+_Z = "Z"
 _RAY_VIGNETTING = "RAY_VIGNETTING"
 _RAY_POL_FIELD = "RAY_POL_FIELD"
 _INTENSITY = "INTENSITY"
@@ -93,20 +97,20 @@ class RayPolarization(namedtuple("RayPolarization", "INTENSITY, E_REAL, E_IMAG, 
                                                     "PHASE, POL_ELLIPSE, S_AMP_REFLECTION, S_AMP_TRANSMISSION,"
                                                     "P_AMP_REFLECTION, P_AMP_TRANSMISSION")):
     """
-        Репрезентирует информацию о поляризации всех падающих полей в плосоксти изображения для файла результатов.
-        | INTENSITY      - Нитенсивность E,
-        | E_REAL         - Действительная часть вектора E,
-	    | E_IMAG         - Мнимая часть вектора E,
-	    | S_REFLECTION   - Отражение для S - поляризации,
-	    | S_TRANSMISSION - Пропускание для S - поляризации,
-	    | P_REFLECTION   - Отражение для P - поляризации,
-	    | P_TRANSMISSION - Пропускание для P - поляризации,
-	    | PHASE          - Фаза поля для компанент вектора E,
-	    | POL_ELLIPSE    - Эллипс поляризации,
-	    | S_AMP_REFLECTION   - Абсолютное значение для отражение для S - поляризации,
-	    | S_AMP_TRANSMISSION - Абсолютное значение для пропускание для S - поляризации,
-	    | P_AMP_REFLECTION   - Абсолютное значение для отражение для P - поляризации,
-	    | P_AMP_TRANSMISSION - Абсолютное значение для пропускание для P - поляризации.
+     Репрезентирует информацию о поляризации всех падающих полей в плоскости изображения для файла результатов.
+     | - INTENSITY      - интенсивность E,
+     | - E_REAL         - Действительная часть вектора E,
+     | - E_IMAG         - Мнимая часть вектора E,
+     | - S_REFLECTION   - Отражение для S - поляризации,
+     | - S_TRANSMISSION - Пропускание для S - поляризации,
+     | - P_REFLECTION   - Отражение для P - поляризации,
+     | - P_TRANSMISSION - Пропускание для P - поляризации,
+     | - PHASE          - Фаза поля для компонент вектора E,
+     | - POL_ELLIPSE    - Эллипс поляризации,
+     | - S_AMP_REFLECTION   - Абсолютное значение для отражение для S - поляризации,
+     | - S_AMP_TRANSMISSION - Абсолютное значение для пропускание для S - поляризации,
+     | - P_AMP_REFLECTION   - Абсолютное значение для отражение для P - поляризации,
+     | - P_AMP_TRANSMISSION - Абсолютное значение для пропускание для P - поляризации.
     """
     __slots__ = ()
 
@@ -167,8 +171,8 @@ class ChiefRay(namedtuple("ChiefRay", "FIELD_ID, WAVE_ID, POSITION")):
 class PupilVignetting(namedtuple("PupilVignetting", "pupil, position, vignetting")):
     __slots__ = ()
 
-    def __new__(cls, angles: Vector2, position: Vector2):
-        return super().__new__(cls, angles, position)
+    def __new__(cls, angles: Vector2, position: Vector2, vignetting: float):
+        return super().__new__(cls, angles, position, vignetting)
 
     def __str__(self):
         return f"{{\"PX\": {self.pupil.x}, \"PX\": {self.pupil.y}, " \
@@ -224,6 +228,20 @@ class PupilVignettingDistribution(namedtuple("PupilVignettingDistribution", "WAV
     @property
     def y_slice(self):
         return np.array([self.VIG_PER_POS[i * self.N_X + self.N_Y // 2].position.y for i in range(self.N_Y)])
+
+    @property
+    def vignetting(self):
+        return np.array([v.vignetting for v in self.VIG_PER_POS]).reshape((self.N_Y, self.N_X))
+
+    @property
+    def pupil_coordinates(self):
+        return np.linspace(self.PX_MIN, self.PX_MAX, self.N_X, dtype=float), \
+               np.linspace(self.PY_MIN, self.PY_MAX, self.N_Y, dtype=float)
+
+    # @property
+    # def images_coordinates(self):
+    #     return np.linspace(self.PX_MIN, self.PX_MAX, self.N_X, dtype=float), \
+    #            np.linspace(self.PY_MIN, self.PY_MAX, self.N_Y, dtype=float)
 
 
 class AngleToImagePosDistribution(namedtuple("AngleToImagePosDistribution", "WAVE_ID, AX_MIN, AX_MAX, AY_MIN, AY_MAX, "
@@ -526,19 +544,19 @@ def read_rays_pol(json_node) -> Union[List[RaysPolarizationDistribution], None]:
             n_ang_y = int(n[_N_ANGLES_Y])
             wave_id = int(n[_WAVE_ID])
             pts = [RayPolarization(float(v[_INTENSITY]),
-                                   Vector3(float(v[_E_REAL][_x]), float(v[_E_REAL][_y]), float(v[_E_REAL][_z])),
-                                   Vector3(float(v[_E_IMAG][_x]), float(v[_E_IMAG][_y]), float(v[_E_IMAG][_z])),
-                                   Vector2(float(v[_S_REFLECTION][_x]), float(v[_S_REFLECTION][_y])),
-                                   Vector2(float(v[_S_TRANSMISSION][_x]), float(v[_S_TRANSMISSION][_y])),
-                                   Vector2(float(v[_P_REFLECTION][_x]), float(v[_P_REFLECTION][_y])),
-                                   Vector2(float(v[_P_TRANSMISSION][_x]), float(v[_P_TRANSMISSION][_y])),
-                                   Vector3(float(v[_PHASE][_x]), float(v[_PHASE][_y]), float(v[_PHASE][_z])),
+                                   Vector3(float(v[_E_REAL][_X]), float(v[_E_REAL][_Y]), float(v[_E_REAL][_Z])),
+                                   Vector3(float(v[_E_IMAG][_X]), float(v[_E_IMAG][_Y]), float(v[_E_IMAG][_Z])),
+                                   Vector2(float(v[_S_REFLECTION][_X]), float(v[_S_REFLECTION][_Y])),
+                                   Vector2(float(v[_S_TRANSMISSION][_X]), float(v[_S_TRANSMISSION][_Y])),
+                                   Vector2(float(v[_P_REFLECTION][_X]), float(v[_P_REFLECTION][_Y])),
+                                   Vector2(float(v[_P_TRANSMISSION][_X]), float(v[_P_TRANSMISSION][_Y])),
+                                   Vector3(float(v[_PHASE][_X]), float(v[_PHASE][_Y]), float(v[_PHASE][_Z])),
                                    Vector3(float(v[_POL_ELLIPSE][_MAJOR_AXIS]), float(v[_POL_ELLIPSE][_MINOR_AXIS]),
                                            float(v[_POL_ELLIPSE][_ANGLE])),
-                                   Vector2(float(v[_S_AMP_REFLECTION][_x]), float(v[_S_AMP_REFLECTION][_y])),
-                                   Vector2(float(v[_S_AMP_TRANSMISSION][_x]), float(v[_S_AMP_TRANSMISSION][_y])),
-                                   Vector2(float(v[_P_AMP_REFLECTION][_x]), float(v[_P_AMP_REFLECTION][_y])),
-                                   Vector2(float(v[_P_AMP_TRANSMISSION][_x]), float(v[_P_AMP_TRANSMISSION][_y])))
+                                   Vector2(float(v[_S_AMP_REFLECTION][_X]), float(v[_S_AMP_REFLECTION][_Y])),
+                                   Vector2(float(v[_S_AMP_TRANSMISSION][_X]), float(v[_S_AMP_TRANSMISSION][_Y])),
+                                   Vector2(float(v[_P_AMP_REFLECTION][_X]), float(v[_P_AMP_REFLECTION][_Y])),
+                                   Vector2(float(v[_P_AMP_TRANSMISSION][_X]), float(v[_P_AMP_TRANSMISSION][_Y])))
                    for v in n[_POL_PER_ANG]]
             cord_dep.append(RaysPolarizationDistribution(wave_id, ang_x_min, ang_x_max, ang_y_min,
                                                          ang_y_max, n_ang_x, n_ang_y, pts))
@@ -556,15 +574,15 @@ def read_vignetting_dep(json_node) -> Union[List[PupilVignettingDistribution], N
     node = json_node[_RAY_VIGNETTING]
     for n in node:
         try:
-            ang_x_min = float(n[_AX_MIN])
-            ang_x_max = float(n[_AX_MAX])
-            ang_y_min = float(n[_AY_MIN])
-            ang_y_max = float(n[_AY_MAX])
-            n_ang_x = int(n[_N_ANGLES_X])
-            n_ang_y = int(n[_N_ANGLES_Y])
+            ang_x_min = float(n[_PX_MIN])
+            ang_x_max = float(n[_PX_MAX])
+            ang_y_min = float(n[_PY_MIN])
+            ang_y_max = float(n[_PY_MAX])
+            n_ang_x = int(n[_N_X])
+            n_ang_y = int(n[_N_X])
             wave_id = int(n[_WAVE_ID])
             pts = [PupilVignetting(Vector2(float(v[_PX]), float(v[_PY])),
-                                   Vector2(float(v[_X]), float(v[_Y]))) for v in n[_VIG_PER_POS]]
+                                   Vector2(float(v[_X]), float(v[_Y])), float(v['RAY_V'])) for v in n[_VIG_PER_POS]]
             cord_dep.append(PupilVignettingDistribution(wave_id, ang_x_min, ang_x_max, ang_y_min,
                                                         ang_y_max, n_ang_x, n_ang_y, pts))
         except KeyError as _:

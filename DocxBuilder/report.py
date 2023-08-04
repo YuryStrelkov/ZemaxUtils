@@ -1,24 +1,43 @@
 import os.path
 import numpy as np
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING
 from docx.shared import Inches, Cm
 from typing import Union, Tuple
 from docx.shared import Pt
 from docx import Document
 from matplotlib import pyplot as plt
-
+from docx.enum.section import WD_ORIENTATION
 from Geometry import poly_regression, linear_regression, Vector2
 from ResultBuilder import ResultFile, draw_spot, ResultVisualSettings, draw_pos_from_angle, draw_psf, \
     draw_psf_cross_section, draw_mtf
+from docx.enum.section import WD_SECTION_START, WD_ORIENTATION
 
 
 class Report:
+    @property
+    def images_count(self) -> int:
+        return self._images_count
+
+    @images_count.setter
+    def images_count(self, value: int) -> None:
+        assert isinstance(value, int)
+        self._images_count = max(0, value)
+
+    @property
+    def tables_count(self) -> int:
+        return self._images_count
+
+    @tables_count.setter
+    def tables_count(self, value: int) -> None:
+        assert isinstance(value, int)
+        self._tables_count = max(0, value)
+
     def __init__(self):
         self._images_count: int = 0
         self._tables_count: int = 0
         self._formulae_count: int = 0
-        self._docx: Document = Document(r'D:\Github\ZemaxUtils\DocxBuilder\report_template.docx')
+        self._docx: Document = Document(r'E:\Github\ZemaxUtils\ZemaxUtils\DocxBuilder\report_template.docx')
         self._report_tmp: str = ''
 
     def keep_table_on_one_page(self):
@@ -28,15 +47,16 @@ class Report:
             ppr.keepNext_val = True
 
     def add_paragraph(self, text: str = 'Paragraph', font_name: str = 'Times New Roman', font_size: int = 14,
-                      alignment=WD_PARAGRAPH_ALIGNMENT.CENTER, italic: bool = False, bold: bool = False):
+                      alignment=WD_PARAGRAPH_ALIGNMENT.CENTER, italic: bool = False, bold: bool = False,
+                      indent: float = 1.5):
         p = self._docx.add_paragraph()
+        p.paragraph_format.line_spacing = indent
         p.paragraph_format.alignment = alignment
         t = p.add_run(text)
         t.font.name = font_name
         t.font.size = Pt(font_size)
         t.font.bold = bold
         t.italic = italic
-
         return self
 
     def add_image(self, src: str, desc: str = '',
@@ -54,9 +74,6 @@ class Report:
 
         last_paragraph = self._docx.paragraphs[-1]
         last_paragraph.alignment = alignment
-
-        p = self._docx.add_paragraph()
-        p.paragraph_format.alignment = alignment
         if desc == "":
             f_name = '.'.join(v for v in src.split("\\")[-1].split(".")[:-1])
             if f_name.startswith("psf"):
@@ -71,15 +88,16 @@ class Report:
             else:
                 desc = "Нет описания к рисунку."
 
-        self.add_paragraph(f"Рисунок {self._images_count}. {desc}\n", font_size=font_size, alignment=alignment, italic=False)
+        self.add_paragraph(f"Рисунок {self._images_count}. {desc}\n", font_size=font_size, alignment=alignment,
+                           italic=False, indent=1.0)
 
     def add_table(self, headers, data, description: str = "", font_name: str = 'Times New Roman', font_size: int = 14,
                   alignment=WD_PARAGRAPH_ALIGNMENT.CENTER, italic: bool = False, format_provider=lambda s: str(s)):
         self._tables_count += 1
 
         self.add_paragraph(text=f"\nТаблица. {self._tables_count}. "
-                                f"{'Нет описания к таблице.' if description == '' else description}\n",
-                           italic=italic, font_name=font_name, font_size=font_size)
+                                f"{'Нет описания к таблице' if description == '' else description}\n",
+                           italic=italic, font_name=font_name, font_size=14, indent=1.0)
 
         table = self._docx.add_table(rows=len(data) // len(headers) + 1, cols=len(headers))
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -111,7 +129,7 @@ class Report:
     def _basic_params(self, file: ResultFile):
         self.add_paragraph(f"\tОсновные параметры схемы и окружения представлены в таблице {self._tables_count + 1}.",
                            alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-        self.add_table(description='Основные параметры исследуемой схемы.',
+        self.add_table(description='Основные параметры исследуемой схемы',
                        headers=('Параметр схемы', 'Значение'),
                        data=("количество элементов", file.entries_count,
                              "апертура, [мм]", file.aperture_value,
@@ -143,7 +161,7 @@ class Report:
         for wl, ww in zip(file.wavelengths, file.wavelengths_weights):
             data.append(f'{wl: .4}')
             data.append(f'{ww: .4}')
-        self.add_table(description='Параметры длин волн в исследуемой схеме.', headers=("WL,[mkm]", "Вес"), data=data)
+        self.add_table(description='Параметры длин волн в исследуемой схеме.', headers=("WL,[мкм]", "Вес"), data=data)
 
     def _spot_diagrams(self, file: ResultFile):
         visual_settings = ResultVisualSettings()
@@ -167,6 +185,67 @@ class Report:
         self.add_image(image_src, f'SPOT диаграмма для полей с углами падения: {angles}.',
                        size=(visual_settings.width, visual_settings.height))
 
+    def _vignetting_tables(self, file: ResultFile):
+        self.add_paragraph(f"\tИнформация о параметрах виньетирования относительно координат зрачка представлена"
+                           f" в следующих трёх таблицах {self._tables_count + 1} - {self._images_count + 1 + 3}.",
+                           alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
+
+        data = []
+        vig1 = file.vignetting_info(1)[-1]
+        vig2 = file.vignetting_info(5)[-1]
+        vig3 = file.vignetting_info(9)[-1]
+        wl1, x, y, vig_1 = vig1['wave_id'], vig1['pupil_x'], vig1['pupil_y'], vig1['vignetting']
+        wl2, x, y, vig_2 = vig2['wave_id'], vig2['pupil_x'], vig2['pupil_y'], vig2['vignetting']
+        wl3, x, y, vig_3 = vig3['wave_id'], vig3['pupil_x'], vig3['pupil_y'], vig3['vignetting']
+
+        for WAVE_ID, vig in zip((wl1, wl2, wl3), (vig_1, vig_2, vig_3)):
+            data.clear()
+            wl = file.wavelengths[WAVE_ID]
+            for index, value in enumerate(vig.flat):
+                row, col = divmod(index, x.size)
+                if col == 0:
+                    data.append(f'{y[row]:.2f}')
+                    data.append(f'{value:.2f}')
+                else:
+                    data.append(f'{value:.2f}')
+            header = ['PY/PX']
+            header.extend([f'{xi:.2f}' for xi in x])
+            # self._docx.add_section(start_type=WD_SECTION_START.NEW_PAGE)
+            # self._docx.sections[-1].orientation = WD_ORIENTATION.LANDSCAPE
+            # self._docx.sections[-1].page_width = self._docx.sections[0].page_height
+            # self._docx.sections[-1].page_height = self._docx.sections[0].page_width
+            self.add_table(headers=header,
+                           description=f'Параметры веньетирования в зависимости от нормализованных координат входного'
+                                       f' зрачка диаграммы при длине волны {wl}мКм',
+                           data=data, font_size=12)
+        section = self._docx.sections[-1]
+        section.orientation = WD_ORIENTATION.LANDSCAPE
+
+    def _polarization_tables(self, file: ResultFile):
+        self.add_paragraph(f"\tИнформация о параметрах интенсивности  относительно координат зрачка представлена"
+                           f" в следующих трёх таблицах {self._tables_count + 1} - {self._images_count + 1 + 3}.",
+                           alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
+        data = []
+        x, y, vig_1 = file.vignetting_info(1)
+        x, y, vig_2 = file.vignetting_info(5)
+        x, y, vig_3 = file.vignetting_info(9)
+        for WAVE_ID, vig in zip((1, 5, 9), (vig_1, vig_2, vig_3)):
+            data.clear()
+            wl = file.wavelengths[WAVE_ID]
+            for index, value in enumerate(vig.flat):
+                row, col = divmod(index, x.size)
+                if col == 0:
+                    data.append(f'{y[row]:.2f}')
+                    data.append(f'{value:.2f}')
+                else:
+                    data.append(f'{value:.2f}')
+            header = ['PY/PX']
+            header.extend([f'{xi:.2f}' for xi in x])
+            self.add_table(headers=header,
+                           description=f'Параметры веньетирования в зависимости от нормализованных координат входного'
+                                       f' зрачка диаграммы при длине волны {wl}мКм',
+                           data=data, font_size=12)
+
     def _spot_diagrams_tables(self, file: ResultFile):
         self.add_paragraph(f"\tДетальная информация о параметрах спот диаграммы представлена в таблицах "
                            f"{self._tables_count + 1} - {self._images_count + 1 + len(file.wavelengths)}."
@@ -181,15 +260,15 @@ class Report:
             spots = file.get_spot(field_id=-1, wave_id=WAVE_ID + 1)
             for v in spots:
                 data.append(f'{v.FIELD_ID}')
-                data.append(f'{file.fields[v.FIELD_ID].FLDX:.3E}')
-                data.append(f'{file.fields[v.FIELD_ID].FLDY:.3E}')
-                data.append(f'{v.CENTER.x:.3E}')
-                data.append(f'{v.CENTER.y:.3E}')
-                data.append(f'{v.R_GEO:.3E}')
-                data.append(f'{v.R_RMS:.3E}')
+                data.append(f'{file.fields[v.FIELD_ID].FLDX:.3f}')
+                data.append(f'{file.fields[v.FIELD_ID].FLDY:.3f}')
+                data.append(f'{v.CENTER.x:.3f}')
+                data.append(f'{v.CENTER.y:.3f}')
+                data.append(f'{v.R_GEO:.3f}')
+                data.append(f'{v.R_RMS:.3f}')
             self.add_table(headers=('Номер поля', 'Угол по Х', 'Угол по Y', 'X-центр', 'Y-центр', 'R-AVG', 'R-RMS'),
                            description=f'Параметры спот диаграммы для каждого из полей при длине волны {wl}мКм. '
-                                       f'Углы имеют размерность градусов, координаты и радиусы - миллиметры.',
+                                       f'Углы имеют размерность градусов, координаты и радиусы - миллиметры',
                            data=data, font_size=12)
 
     def _spot_center_positions_interp(self, file: ResultFile):
@@ -209,7 +288,7 @@ class Report:
         #     angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
         #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
         #     data.extend([f'{v:.3E}' for v in poly_regression(angles, coord.x_slice, 6).flat])
-        # self.add_table(headers=('WL,[mkm]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
+        # self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
         #                description=f'Полиномиальное разложение прямой зависимости положения геометрического центра '
         #                            f'спот диаграммы на '
         #                            f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
@@ -219,7 +298,7 @@ class Report:
         #     angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
         #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
         #     data.extend(list(map(lambda v: f'{v:.3E}', poly_regression(angles, coord.y_slice, 6).flat)))
-        # self.add_table(headers=('WL,[mkm]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
+        # self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
         #                description=f'Полиномиальное разложение прямой зависимости положения геометрического центра '
         #                            f'спот диаграммы на '
         #                            f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
@@ -236,7 +315,7 @@ class Report:
         #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_x, coord.x_slice))))
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_y, coord.y_slice))))
-        # self.add_table(headers=('WL,[mkm]', 'kx', 'bx', 'ky', 'by'),
+        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
         #                description=f'Линейное разложение прямых зависимостей положения центра спот диаграммы на  '
         #                            f'плоскости относительно осей x и y.', data=data, font_size=12)
         """
@@ -254,22 +333,22 @@ class Report:
         for coord in file.cords:
             angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
             data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-            data.extend([f'{v:.3E}' for v in poly_regression(coord.x_slice, angles, 6).flat])
-        self.add_table(headers=('WL,[mkm]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
+            data.extend([f'{v:.3f}' for v in poly_regression(coord.x_slice, angles, 6).flat])
+        self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от'
                                    f' положения геометрического центра спот диаграммы на '
                                    f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data)  # , font_size=12)
+                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # , font_size=12)
         data.clear()
         for coord in file.cords:
             angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
             data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-            data.extend(list(map(lambda v: f'{v:.3E}', poly_regression(coord.y_slice, angles, 6).flat)))
-        self.add_table(headers=('WL,[mkm]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
+            data.extend(list(map(lambda v: f'{v:.3f}', poly_regression(coord.y_slice, angles, 6).flat)))
+        self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от'
                                    f' положения геометрического центра спот диаграммы на '
                                    f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data)  # , font_size=12)
+                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # , font_size=12)
 
         # self.add_paragraph(
         #     f"\tОбратная зависимость положения геометрического центра спот диаграммы на плоскости изображения "
@@ -283,7 +362,7 @@ class Report:
         #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(coord.x_slice, angles_x))))
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(coord.y_slice, angles_y))))
-        # self.add_table(headers=('WL,[mkm]', 'kx', 'bx', 'ky', 'by'),
+        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
         #                description=f'Линейное разложение обратных зависимостей положения центра спот диаграммы на  '
         #                            f'плоскости относительно осей x и y.', data=data, font_size=12)
 
@@ -306,14 +385,14 @@ class Report:
         image_src = f"{self._report_tmp}image_{self._images_count}.png"
         fig.savefig(image_src)
         plt.close(fig)
-        self.add_image(image_src, 'Зависимость положения центра спот диаграммы от угла падения X в плоскости ZoY.',
+        self.add_image(image_src, 'Зависимость положения центра спот диаграммы от угла падения X в плоскости ZoY',
                        size=(visual_settings.width, visual_settings.height))
 
         fig = draw_pos_from_angle(file, visual_settings=visual_settings, direction='y', show=False)
         image_src = f"{self._report_tmp}image_{self._images_count}.png"
         fig.savefig(image_src)
         plt.close(fig)
-        self.add_image(image_src, 'Зависимость положения центра спот диаграммы от угла падения Y в плоскости ZoX.',
+        self.add_image(image_src, 'Зависимость положения центра спот диаграммы от угла падения Y в плоскости ZoX',
                        size=(visual_settings.width, visual_settings.height))
 
     def _mtf_diagrams(self, file: ResultFile):
@@ -329,7 +408,7 @@ class Report:
         self.add_paragraph(
             f"\n\tЧастотно контрастная характеристика схемы представлена на рисунке {self._images_count + 1}.\n",
             alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-        self.add_image(image_src, 'Частотно контрастная характеристика для всех полей, усреднённая по длинам волн.',
+        self.add_image(image_src, 'Частотно контрастная характеристика для всех полей, усреднённая по длинам волн',
                        size=(visual_settings.width, visual_settings.height))
 
     def _psf_diagrams(self, file: ResultFile):
@@ -352,7 +431,7 @@ class Report:
         image_src = f"{self._report_tmp}image_{self._images_count}.png"
         fig.savefig(image_src)
         plt.close(fig)
-        self.add_image(image_src, f'Функции рассеяния точки исследуемой схемы для полей с углами падения: {angles}.',
+        self.add_image(image_src, f'Функции рассеяния точки исследуемой схемы для полей с углами падения: {angles}',
                        size=(visual_settings.width, visual_settings.height))
 
     def _psf_diagrams_tables(self, file: ResultFile):
@@ -374,14 +453,14 @@ class Report:
             wl = file.wavelengths[wl_index]
             for field_id, ((x, y), i) in enumerate(field_xy):
                 data.append(f'{field_id + 1}')
-                data.append(f'{file.fields[field_id + 1].FLDX:.3E}')
-                data.append(f'{file.fields[field_id + 1].FLDY:.3E}')
-                data.append(f'{x:.3E}')
-                data.append(f'{y:.3E}')
-                data.append(f'{i:.3E}')
+                data.append(f'{file.fields[field_id + 1].FLDX:.3f}')
+                data.append(f'{file.fields[field_id + 1].FLDY:.3f}')
+                data.append(f'{x:.3f}')
+                data.append(f'{y:.3f}')
+                data.append(f'{i:.3f}')
             self.add_table(headers=('Номер поля', 'Угол по Х', 'Угол по Y', 'X-центр', 'Y-центр', 'Интенсивность'),
                            description=f'Параметры функций рассеяния точки схемы для каждого из полей при длине волны '
-                                       f'{wl} мКм.', data=data)  # ,, font_size=12)
+                                       f'{wl} мКм', data=data)  # ,, font_size=12)
 
     def _psf_center_positions_interp(self, file: ResultFile):
         """
@@ -403,7 +482,7 @@ class Report:
         # for wave_id, psf_cords in enumerate(x_cords):
         #     data.append(f'{file.wavelengths[wave_id]:.3f}')
         #     data.extend([f'{v:.3E}' for v in poly_regression(angles_x, psf_cords, 6).flat])
-        # self.add_table(headers=('WL,[mkm]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
+        # self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
         #                description=f'Полиномиальное разложение прямой зависимости положения максимума интенсивности'
         #                            f' функции рассеяния точки на '
         #                            f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
@@ -412,7 +491,7 @@ class Report:
         # for wave_id, psf_cords in enumerate(y_cords):
         #     data.append(f'{file.wavelengths[wave_id]:.3f}')
         #     data.extend(list(map(lambda v: f'{v:.3E}', poly_regression(angles_y, psf_cords, 6).flat)))
-        # self.add_table(headers=('WL,[mkm]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
+        # self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
         #                description=f'Полиномиальное разложение прямой зависимости положения максимума интенсивности'
         #                            f' функции рассеяния точки на '
         #                            f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
@@ -427,7 +506,7 @@ class Report:
         #     data.append(f'{file.wavelengths[wave_id]:.3f}')
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_x, x))))
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_y, y))))
-        # self.add_table(headers=('WL,[mkm]', 'kx', 'bx', 'ky', 'by'),
+        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
         #                description=f'Линейное разложение прямых зависимостей положения максимума интенсивности'
         #                            f' функции рассеяния точки на плоскости относительно осей x и y.',
         #                data=data, font_size=12)
@@ -449,21 +528,21 @@ class Report:
         y_cords = file.x_image_pos_per_angle_from_psf
         for wave_id, psf_cords in enumerate(x_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
-            data.extend([f'{v:.3E}' for v in poly_regression(psf_cords, angles_x, 6).flat])
-        self.add_table(headers=('WL,[mkm]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
+            data.extend([f'{v:.3f}' for v in poly_regression(psf_cords, angles_x, 6).flat])
+        self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '
                                    f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data)  # ,, font_size=12)
+                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # ,, font_size=12)
         data.clear()
         for wave_id, psf_cords in enumerate(y_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
-            data.extend(list(map(lambda v: f'{v:.3E}', poly_regression(psf_cords, angles_y, 6).flat)))
-        self.add_table(headers=('WL,[mkm]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
+            data.extend(list(map(lambda v: f'{v:.3f}', poly_regression(psf_cords, angles_y, 6).flat)))
+        self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '
                                    f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data)  # ,, font_size=12)
+                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # ,, font_size=12)
         # self.add_paragraph(
         #     f"\n\tОбратная зависимость положения максимума интенсивности функции рассеяния точки на плоскости изображения "
         #     f"в виде линейного разложения "
@@ -474,7 +553,7 @@ class Report:
         #     data.append(f'{file.wavelengths[wave_id]:.3f}')
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(x, angles_x))))
         #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(y, angles_y))))
-        # self.add_table(headers=('WL,[mkm]', 'kx', 'bx', 'ky', 'by'),
+        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
         #                description=f'Линейное разложение обратных зависимостей положения максимума интенсивности'
         #                            f' функции рассеяния точки на плоскости относительно осей x и y.',
         #                data=data, font_size=12)
@@ -498,7 +577,7 @@ class Report:
         fig.savefig(image_src)
         plt.close(fig)
         self.add_image(image_src, 'Зависимость х-координаты положения максимума интенсивности функции'
-                                  ' рассеяния точки от угла падения X в плоскости ZoY.',
+                                  ' рассеяния точки от угла падения X в плоскости ZoY',
                        size=(visual_settings.width, visual_settings.height))
 
         fig = draw_pos_from_angle(file, visual_settings=visual_settings, direction='y', show=False)
@@ -506,17 +585,18 @@ class Report:
         fig.savefig(image_src)
         plt.close(fig)
         self.add_image(image_src, 'Зависимость y-координаты положения максимума интенсивности функции'
-                                  ' рассеяния точки от угла падения Y в плоскости ZoX.',
+                                  ' рассеяния точки от угла падения Y в плоскости ZoX',
                        size=(visual_settings.width, visual_settings.height))
 
-    def update(self, file: ResultFile):
+    def update(self, file: ResultFile, show_main_info: bool = False):
         self._report_tmp = os.path.curdir + '\\report_tmp\\'
         if not os.path.isdir(self._report_tmp):
             os.mkdir(self._report_tmp)
-
         self.add_paragraph(f"Результаты моделирования для {file.scheme_src}\n", bold=True, font_size=14)
-        self._basic_params(file)
+        if show_main_info:
+            self._basic_params(file)
         self._mtf_diagrams(file)
+        self._vignetting_tables(file)
         self._spot_diagrams(file)
         # self._spot_center_positions_interp_images(file)
         self._spot_diagrams_tables(file)
