@@ -40,6 +40,8 @@ star_sensor_1 = Transform()
 star_sensor_1.ay = -(90 - 70.5)
 star_sensor_1.ay = -(90 - 70.5)
 
+star_sensor_axis_0 = Vector3(*(math.cos(v / 180 *  math.pi) for v in (90.0, 55.0, 145))).normalized()
+
 star_sensor_axis_1 = Vector3(*(math.cos(v / 180 *  math.pi) for v in (90.0, 55.0, 145))).normalized()
 # print(sum(v ** 2 for v in star_sensor_axis_1))
 
