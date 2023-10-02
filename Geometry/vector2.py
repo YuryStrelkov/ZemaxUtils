@@ -1,5 +1,6 @@
-from .common import NUMERICAL_FORMAT_4F as _4F, NUMERICAL_ACCURACY
+from .common import NUMERICAL_FORMAT_4F as _4F
 from collections import namedtuple
+import numpy as np
 import math
 
 
@@ -110,9 +111,9 @@ class Vector2(namedtuple('Vector2', 'x, y')):
         :param v:
         :return: возвращает единичный вектор перпендикулярный заданному.
         """
-        if v.x == 0:
-            return cls(1.0 if v.y >= 0.0 else -1.0, 0)
-        if v.y == 0:
+        if v.x == 0.0:
+            return cls(1.0 if v.y >= 0.0 else -1.0, 0.0)
+        if v.y == 0.0:
             return cls(0, -1.0 if v.y >= 0.0 else 1.0)
         sign: float = 1.0 if v.x / v.y >= 0.0 else -1.0
         dx: float = 1.0 / v.x
@@ -145,8 +146,20 @@ class Vector2(namedtuple('Vector2', 'x, y')):
         db = cls(pt4.x - pt3.x, pt4.y - pt3.y)
         det = Vector2.cross(da, db)
         if abs(det) < 1e-5:
+            # if Vector2.overlay(pt1, pt2, pt3, pt4):
+            #     return sum((pt1, pt2, pt3, pt4)) * 0.25
             return None
         det = 1.0 / det
         x = Vector2.cross(pt1, da)
         y = Vector2.cross(pt3, db)
         return cls((y * da.x - x * db.x) * det, (y * da.y - x * db.y) * det)
+
+    @classmethod
+    def from_np_array(cls, array: np.ndarray):
+        assert isinstance(array, np.ndarray)
+        assert array.size == 2
+        return cls(*array.flat)
+
+    def to_np_array(self) -> np.ndarray:
+        return np.array(self)
+

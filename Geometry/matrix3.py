@@ -1,8 +1,9 @@
-# from accelerometer_core.Utilities.vector3 import Vector3
 from .common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY
 from collections import namedtuple
 from .vector3 import Vector3
+from .vector2 import Vector2
 from typing import Tuple
+import numpy as np
 import math
 
 
@@ -10,8 +11,10 @@ class Matrix3(namedtuple('Matrix3', 'm00, m01, m02,'
                                     'm10, m11, m12,'
                                     'm20, m21, m22')):
     """
-    immutable Matrix 3d
+    immutable Matrix 4d
     """
+    __slots__ = ()
+
     def __new__(cls,
                 m00: float = 0.0, m01: float = 0.0, m02: float = 0.0,
                 m10: float = 0.0, m11: float = 0.0, m12: float = 0.0,
@@ -35,10 +38,10 @@ class Matrix3(namedtuple('Matrix3', 'm00, m01, m02,'
 
     @classmethod
     def rotate_x(cls, angle: float, angle_in_rad: bool = True):
-        cos_a = math.cos(angle)
-        sin_a = math.sin(angle)
         if not angle_in_rad:
             angle *= DEG_TO_RAD
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
         return cls(1.0, 0.0, 0.0,
                    0.0, cos_a, -sin_a,
                    0.0, sin_a, cos_a)
@@ -90,6 +93,19 @@ class Matrix3(namedtuple('Matrix3', 'm00, m01, m02,'
                    ex[2], ey[2], ez[2])
 
     @classmethod
+    def from_np_array(cls, array: np.ndarray):
+        assert isinstance(array, np.ndarray)
+        assert array.size == 9
+        return cls(*array.flat)
+
+    @classmethod
+    def translate(cls, position: Vector2):
+        assert isinstance(position, Vector2)
+        return cls(1.0, 0.0, position.x,
+                   0.0, 1.0, position.y,
+                   0.0, 0.0, 1.0)
+
+    @classmethod
     def build_transform(cls, right: Vector3, up: Vector3, front: Vector3):
         """
         -- НЕ ПРОВЕРЯЕТ ОРТОГОНАЛЬНОСТЬ front, up, right !!!
@@ -106,10 +122,10 @@ class Matrix3(namedtuple('Matrix3', 'm00, m01, m02,'
         """
         :return: углы поворота по осям
         """
-        if math.fabs(self.m20 + 1) < NUMERICAL_ACCURACY:
+        if math.fabs(self.m20 + 1.0) < NUMERICAL_ACCURACY:
             return Vector3(0.0, math.pi * 0.5, math.atan2(self.m01, self.m02))
 
-        if math.fabs(self.m20 - 1) < NUMERICAL_ACCURACY:
+        if math.fabs(self.m20 - 1.0) < NUMERICAL_ACCURACY:
             return Vector3(0.0, -math.pi * 0.5, math.atan2(-self.m01, -self.m02))
 
         x1 = -math.asin(self.m20)
@@ -167,7 +183,7 @@ class Matrix3(namedtuple('Matrix3', 'm00, m01, m02,'
     def __str__(self) -> str:
         return f"{{\n\t\"m00\": {self.m00:{_4F}}, \"m01\": {self.m01:{_4F}}, \"m02\": {self.m02:{_4F}},\n" \
                f"\t\"m10\": {self.m10:{_4F}}, \"m11\": {self.m11:{_4F}}, \"m12\": {self.m12:{_4F}},\n" \
-               f"\t\"m20\": {self.m20:{_4F}}, \"m21\": {self.m21:{_4F}}, \"m22\": {self.m22:{_4F}}\n}}\n"
+               f"\t\"m20\": {self.m20:{_4F}}, \"m21\": {self.m21:{_4F}}, \"m22\": {self.m22:{_4F}}\n}}"
 
     def __neg__(self):
         return Matrix3(*(-val for val in self))
@@ -253,3 +269,55 @@ class Matrix3(namedtuple('Matrix3', 'm00, m01, m02,'
         if isinstance(other, int) or isinstance(other, float):
             return Matrix3(*(other / s for s in self))
         raise RuntimeError(f"Matrix3::TrueDiv::wrong argument type {type(other)}")
+
+    def multiply_by_point(self, point: Vector2) -> Vector2:
+        assert isinstance(point, Vector2)
+        return Vector2(self.m00 * point.x + self.m01 * point.y + self.m02,
+                       self.m10 * point.x + self.m11 * point.y + self.m12)
+
+    def multiply_by_direction(self, point: Vector2) -> Vector2:
+        assert isinstance(point, Vector2)
+        return Vector2(self.m00 * point.x + self.m01 * point.y,
+                       self.m10 * point.x + self.m11 * point.y)
+
+    def to_np_array(self) -> np.ndarray:
+        return np.array(self).reshape((3, 3))
+
+    def perspective_multiply(self,  point: Vector2) -> Vector2:
+        p = self * Vector3(point.x, point.y, 1.0)
+        return Vector2(p.x / p.z, p.y / p.z)
+
+    @classmethod
+    def perspective_transform_from_four_points(cls, *args):
+        assert (all(isinstance(item, Vector2) for item in args) and len(args) == 4)
+        ur, dr, dl, ul = args
+        matrix = ( 1.0,  1.0, 1.0,  0.0,  0.0, 0.0, -ur.x, -ur.x,
+                   0.0,  0.0, 0.0,  1.0,  1.0, 1.0, -ur.y, -ur.y,
+                   1.0, -1.0, 1.0,  0.0,  0.0, 0.0, -dr.x,  dr.x,
+                   0.0,  0.0, 0.0,  1.0, -1.0, 1.0, -dr.y,  dr.y,
+                  -1.0, -1.0, 1.0,  0.0,  0.0, 0.0,  dl.x,  dl.x,
+                   0.0,  0.0, 0.0, -1.0, -1.0, 1.0,  dl.y,  dl.y,
+                  -1.0,  1.0, 1.0,  0.0,  0.0, 0.0,  ul.x, -ul.x,
+                   0.0,  0.0, 0.0, -1.0,  1.0, 1.0,  ul.y, -ul.y)
+        b = np.array((ur.x, ur.y, dr.x, dr.y, dl.x, dl.y, ul.x, ul.y))
+        matrix = np.array(matrix).reshape((8, 8))
+        return cls(*(np.linalg.inv(matrix) @ b).flat, 1.0)
+
+    @classmethod
+    def perspective_transform_from_eight_points(cls, *args):
+        assert (all(isinstance(item, Vector2) for item in args) and len(args) == 8)
+        ur_1, dr_1, dl_1, ul_1, ur_2, dr_2, dl_2, ul_2 = args
+        # m00 | m01 | m02 | m10 | m11 | m12 |     m20    |     m21    |
+        # c_x | c_y |  1  |  0  |  0  |  0  | -p_x * c_x | -p_x * c_y |
+        #  0  |  0  |  0  | c_x | c_y |  1  | -p_y * c_x | -p_y * c_y |
+        matrix = (ur_2.x,  ur_2.y, 1.0,  0.0,     0.0,    0.0, -ur_1.x * ur_2.x, -ur_1.x * ur_2.y,
+                  0.0,     0.0,    0.0,  ur_2.x,  ur_2.y, 1.0, -ur_1.y * ur_2.x, -ur_1.y * ur_2.y,
+                  dr_2.x,  dr_2.y, 1.0,  0.0,     0.0,    0.0, -dr_1.x * dr_2.x, -dr_1.x * dr_2.y,
+                  0.0,     0.0,    0.0,  dr_2.x,  dr_2.y, 1.0, -dr_1.y * dr_2.x, -dr_1.y * dr_2.y,
+                  dl_2.x,  dl_2.y, 1.0,  0.0,     0.0,    0.0, -dl_1.x * dl_2.x, -dl_1.x * dl_2.y,
+                  0.0,     0.0,    0.0,  dl_2.x,  dl_2.y, 1.0, -dl_1.y * dl_2.x, -dl_1.y * dl_2.y,
+                  ul_2.x,  ul_2.y, 1.0,  0.0,     0.0,    0.0, -ul_1.x * ul_2.x, -ul_1.x * ul_2.y,
+                  0.0,     0.0,    0.0,  ul_2.x,  ul_2.y, 1.0, -ul_1.y * ul_2.x, -ul_1.y * ul_2.y)
+        b = np.array((ur_1.x, ur_1.y, dr_1.x, dr_1.y, dl_1.x, dl_1.y, ul_1.x, ul_1.y))
+        matrix = np.array(matrix).reshape((8, 8))
+        return cls(*(np.linalg.inv(matrix) @ b).flat, 1.0)

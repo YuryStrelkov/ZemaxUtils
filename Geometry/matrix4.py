@@ -3,6 +3,7 @@ from collections import namedtuple
 from .vector4 import Vector4
 from .vector3 import Vector3
 from typing import Tuple
+import numpy as np
 import math
 
 
@@ -13,6 +14,7 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
     """
     immutable Matrix 4d
     """
+    __slots__ = ()
 
     def __new__(cls, m00: float = 0.0, m01: float = 0.0, m02: float = 0.0, m03: float = 0.0,
                 m10: float = 0.0, m11: float = 0.0, m12: float = 0.0, m13: float = 0.0,
@@ -39,7 +41,7 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
                    0.0, 0.0, 0.0, 0.0)
 
     @classmethod
-    def look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = Vector3(0, 1, 0)):
+    def look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = Vector3(0.0, 1.0, 0.0)):
         """
         :param target: цель на которую смотрим
         :param eye: положение глаза в пространстве
@@ -56,7 +58,7 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
                    Vector3.dot(x_axis, -eye), Vector3.dot(y_axis, -eye), Vector3.dot(z_axis, -eye), 1.0)
 
     @classmethod
-    def transform_look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = Vector3(0, 1, 0)):
+    def transform_look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = Vector3(0.0, 1.0, 0.0)):
         """
         :param target: цель на которую смотрим
         :param eye: положение глаза в пространстве
@@ -73,7 +75,7 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def build_perspective_projection_matrix(cls, fov: float = 70, aspect: float = 1, z_near: float = 0.01, z_far: float = 1000):
+    def build_perspective_projection_matrix(cls, fov: float = 70.0, aspect: float = 1.0, z_near: float = 0.01, z_far: float = 1000):
         """
         :param fov: угол обзора
         :param aspect: соотношение сторон
@@ -81,17 +83,13 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
         :param z_far: дальняя плоскость отсечения
         :return: матрица перспективной проекции
         """
-        scale = max(1.0 / math.tan(fov * 0.5 * math.pi / 180), 0.01)
-        #  scale * aspect  # scale the x coordinates of the projected point
-        #  scale  # scale the y coordinates of the projected point
-        #  z_far / (z_near - z_far)  # used to remap z to [0,1]
-        #  z_far * z_near / (z_near - z_far)  # used to remap z [0,1]
-        #  -1  # set w = -z
-        #  0
-        return cls(scale * aspect, 0.0,   0.0,                               0.0,
-                   0.0,            scale, 0.0,                               0.0,
-                   0.0,            0.0,   z_far / (z_near - z_far),         -1.0,
-                   0.0,            0.0,   z_far * z_near / (z_near - z_far), 0.0)
+        scale = max(1.0 / math.tan(fov * 0.5 * math.pi / 180.0), 0.01)
+        depth_scale = z_far / (z_far - z_near)
+        # z remapped in range of [0,1]
+        return cls(scale * aspect, 0.0,   0.0,                   0.0,
+                   0.0,            scale, 0.0,                   0.0,
+                   0.0,            0.0,   -depth_scale,          -1,
+                   0.0,            0.0,   -depth_scale * z_near, 0.0)
 
     @classmethod
     def build_ortho_projection_matrix(cls,
@@ -104,18 +102,18 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
                    (right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0)
 
     @classmethod
-    def rotate_x(cls, angle: float, angle_in_rad: bool = True):
-        cos_a = math.cos(angle)
-        sin_a = math.sin(angle)
+    def rotate_x(cls, angle: float, angle_in_rad: bool = False):
         if not angle_in_rad:
             angle *= DEG_TO_RAD
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
         return cls(1.0, 0.0, 0.0, 0.0,
                    0.0, cos_a, -sin_a, 0.0,
                    0.0, sin_a, cos_a, 0.0,
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def rotate_y(cls, angle: float, angle_in_rad: bool = True):
+    def rotate_y(cls, angle: float, angle_in_rad: bool = False):
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -126,7 +124,7 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def rotate_z(cls, angle: float, angle_in_rad: bool = True):
+    def rotate_z(cls, angle: float, angle_in_rad: bool = False):
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -164,6 +162,12 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
+    def from_np_array(cls, array: np.ndarray):
+        assert isinstance(array, np.ndarray)
+        assert array.size == 16
+        return cls(*array.flat)
+
+    @classmethod
     def build_transform(cls, right: Vector3, up: Vector3, front: Vector3, origin: Vector3 = None):
         """
         -- НЕ ПРОВЕРЯЕТ ОРТОГОНАЛЬНОСТЬ front, up, right !!!
@@ -188,10 +192,10 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
         """
         :return: углы поворота по осям
         """
-        if math.fabs(self.m20 + 1) < NUMERICAL_ACCURACY:
+        if math.fabs(self.m20 + 1.0) < NUMERICAL_ACCURACY:
             return Vector3(0.0, math.pi * 0.5, math.atan2(self.m01, self.m02))
 
-        if math.fabs(self.m20 - 1) < NUMERICAL_ACCURACY:
+        if math.fabs(self.m20 - 1.0) < NUMERICAL_ACCURACY:
             return Vector3(0.0, -math.pi * 0.5, math.atan2(-self.m01, -self.m02))
 
         x1 = -math.asin(self.m20)
@@ -254,9 +258,9 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
         a0112: float = self.m10 * self.m21 - self.m11 * self.m20
 
         det: float = self.m00 * (self.m11 * a2323 - self.m12 * a1323 + self.m13 * a1223) \
-                   - self.m01 * (self.m10 * a2323 - self.m12 * a0323 + self.m13 * a0223) \
-                   + self.m02 * (self.m10 * a1323 - self.m11 * a0323 + self.m13 * a0123) \
-                   - self.m03 * (self.m10 * a1223 - self.m11 * a0223 + self.m12 * a0123)
+                     - self.m01 * (self.m10 * a2323 - self.m12 * a0323 + self.m13 * a0223) \
+                     + self.m02 * (self.m10 * a1323 - self.m11 * a0323 + self.m13 * a0123) \
+                     - self.m03 * (self.m10 * a1223 - self.m11 * a0223 + self.m12 * a0123)
 
         if abs(det) < NUMERICAL_ACCURACY:
             raise ArithmeticError("Matrix4:: Invert :: singular matrix")
@@ -387,4 +391,19 @@ class Matrix4(namedtuple('Matrix4', 'm00, m01, m02, m03,'
         if isinstance(other, int) or isinstance(other, float):
             return Matrix4(*(other / s for s in self))
         raise RuntimeError(f"Matrix4::TrueDiv::wrong argument type {type(other)}")
+
+    def multiply_by_point(self, point: Vector3) -> Vector3:
+        assert isinstance(point, Vector3)
+        return Vector3(self.m00 * point.x + self.m01 * point.y + self.m02 * point.z + self.m03,
+                       self.m10 * point.x + self.m11 * point.y + self.m12 * point.z + self.m13,
+                       self.m20 * point.x + self.m21 * point.y + self.m22 * point.z + self.m23)
+
+    def multiply_by_direction(self, point: Vector3) -> Vector3:
+        assert isinstance(point, Vector3)
+        return Vector3(self.m00 * point.x + self.m01 * point.y + self.m02 * point.z,
+                       self.m10 * point.x + self.m11 * point.y + self.m12 * point.z,
+                       self.m20 * point.x + self.m21 * point.y + self.m22 * point.z)
+
+    def to_np_array(self) -> np.ndarray:
+        return np.array(self).reshape((4, 4))
 

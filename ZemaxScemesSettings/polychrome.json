@@ -1,8 +1,8 @@
 {
 	"schemas" : [
 	{
-		"description_short": "ideal scheme, polychrome, angle y = 1.074",
-		"description_long": "Моделирование работы полихромной матрицы без тепловых деформаций. Углы падения по по x изменяются в диапазоне от -2.32 до 2.32, что соответствует ширине матрицы. Угол падения по y = 1.074 +/- 0.002 градуса",
+		"description_short": "ideal scheme, polychrome, angle x = 1.074",
+		"description_long": "Моделирование работы полихромной матрицы без тепловых деформаций. Углы падения по по y изменяются в диапазоне от -2.32 до 2.32, что соответствует ширине матрицы. Угол падения по x = 1.074 +/- 0.002 градуса",
 		"remap_surfs": [
 		{"table_index": 1, "scheme_index":  5},
 		{"table_index": 2, "scheme_index":  53},
@@ -23,18 +23,18 @@
 		"fields":
 		{
 		  "fields_type": 0,
-		  "fields": [{ "angle_x": -2.32 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  2.32 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -2.32 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  2.32 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -2.32 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-		  			 { "angle_x":  2.32 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
+		  "fields": [{ "angle_y": -2.32 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  2.32 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -2.32 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  2.32 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -2.32 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+		  			 { "angle_y":  2.32 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
 		},
 		"waves":
 		[
@@ -53,8 +53,8 @@
 		]
 	},
 	{
-		"description_short": "real scheme, polychrome, angle y = 1.074",
-		"description_long": "Моделирование работы полихромной матрицы в случае реальной схемы. Углы падения по по x изменяются в диапазоне от -2.32 до 2.32, что соответствует ширине матрицы. Угол падения по y = 1.074 +/- 0.002 градуса",
+		"description_short": "real scheme, polychrome, angle x = 1.074",
+		"description_long": "Моделирование работы полихромной матрицы в случае реальной схемы. Углы падения по по y изменяются в диапазоне от -2.32 до 2.32, что соответствует ширине матрицы. Угол падения по x = 1.074 +/- 0.002 градуса",
 		"remap_surfs": [
 		{"table_index": 1, "scheme_index":  5},
 		{"table_index": 2, "scheme_index":  53},
@@ -75,18 +75,18 @@
 		"fields":
 		{
 		  "fields_type": 0,
-		  "fields": [{ "angle_x": -2.32 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  2.32 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -2.32 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  2.32 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -2.32 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-		  			 { "angle_x":  2.32 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
+		  "fields": [{ "angle_y": -2.32 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  2.32 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -2.32 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  2.32 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -2.32 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+		  			 { "angle_y":  2.32 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
 		},
 		"waves":
 		[
@@ -196,8 +196,8 @@
 		}]
 	},
 	{
-		"description_short": "deformed scheme, polychrome, angle y = 1.074",
-		"description_long": "Моделирование работы  полихромной матрицы при наличии тепловых деформаций. Углы падения по по x изменяются в диапазоне от -2.32 до 2.32, что соответствует ширине матрицы. Угол падения по y = 1.074 +/- 0.002 градуса",
+		"description_short": "deformed scheme, polychrome, angle x = 1.074",
+		"description_long": "Моделирование работы  полихромной матрицы при наличии тепловых деформаций. Углы падения по по y изменяются в диапазоне от -2.32 до 2.32, что соответствует ширине матрицы. Угол падения по x = 1.074 +/- 0.002 градуса",
 		"remap_surfs": [
 		{"table_index": 1, "scheme_index":  5},
 		{"table_index": 2, "scheme_index":  53},
@@ -218,18 +218,18 @@
 		"fields":
 		{
 		  "fields_type": 0,
-		  "fields": [{ "angle_x": -2.32 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  2.32 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -2.32 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  2.32 , "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -2.32 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x": -0.77 , "angle_y": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-					 { "angle_x":  0.773, "angle_y": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
-		  			 { "angle_x":  2.32 , "angle_y": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
+		  "fields": [{ "angle_y": -2.32 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  2.32 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -2.32 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  2.32 , "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -2.32 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y": -0.77 , "angle_x": 1.072, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+					 { "angle_y":  0.773, "angle_x": 1.074, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 },
+		  			 { "angle_y":  2.32 , "angle_x": 1.076, "weight": 1.0, "vdx": 0.0, "vdy": 0.0, "vcx": 0.0, "vcy": 0.0, "van": 0.0 }]
 		},
 		"waves":
 		[

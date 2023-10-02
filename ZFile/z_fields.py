@@ -4,6 +4,8 @@ from .z_file import ZFileRaw
 
 
 class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, vcyn, vann')):
+    _PARAM_NAMES = ('FTYP', 'XFLN', 'YFLN', 'FWGN', 'VDXN', 'VDYN', 'VCXN', 'VCYN', 'VANN')
+
     _FIELD_TYPES =\
         {0: 'Angle(deg)',
          1: 'Object',
@@ -12,6 +14,7 @@ class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, 
 
     def __new__(cls, z_file: ZFileRaw):
         params = z_file.header_params
+        # assert all(v in ZFields._PARAM_NAMES for v in params.keys())
         ftyp = list(map(int,   params['FTYP'][0].split(' '))) if 'FTYP' in params else [0, 0, 4, 4, 0, 0, 0]
         xfln = list(map(float, params['XFLN'][0].split(' '))) if 'XFLN' in params else \
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -29,7 +32,6 @@ class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, 
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         vann = list(map(float, params['VANN'][0].split(' '))) if 'VANN' in params else \
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
         return super().__new__(cls, ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, vcyn, vann)
 
     @property

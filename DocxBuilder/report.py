@@ -131,23 +131,26 @@ class Report:
                            alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
         self.add_table(description='Основные параметры исследуемой схемы',
                        headers=('Параметр схемы', 'Значение'),
-                       data=("количество элементов", file.entries_count,
-                             "апертура, [мм]", file.aperture_value,
-                             "температура окр. среды (С)", file.temp_c,
-                             "давление окр. среды (MPa)", file.pressure_atm,
-                             "эффективное фокусное расстояние, [мм]", file.efl,
-                             "входной диаметр зрачка, [мм]", file.entrance_pupil_dia,
-                             "входное положение зрачка, [мм]", file.entrance_pupil_pos,
-                             "выходной диаметр зрачка, [мм]", file.exit_pupil_dia,
-                             "выходное положение зрачка, [мм]", file.exit_pupil_pos,
-                             "параксиальная высота изображения, [мм]", file.parax_image_height,
-                             "параксиальное увеличение", file.parax_magnification,
-                             "угловое увеличение", file.angular_magnification,
-                             "полный опт. путь, [мм]", file.total_track,
-                             "сдвиг зрачка по x, [мм]", file.x_pupil_shift,
-                             "сдвиг зрачка по y, [мм]", file.y_pupil_shift,
-                             "сдвиг зрачка по z, [мм]", file.z_pupil_shift,
-                             "номер STOP поверхности", file.stop_surface_number))
+                       data=("количество элементов",                      str(file.entries_count),
+                             "апертура, [мм]",                            str(file.aperture_value),
+                             "температура окр. среды (С)",                str(file.temp_c),
+                             "давление окр. среды (MPa)",                 str(file.pressure_atm),
+                             "эффективное фокусное расстояние, [мм]",     str(file.efl),
+                             "входной диаметр зрачка, [мм]",              str(file.entrance_pupil_dia),
+                             "входное положение зрачка, [мм]",            str(file.entrance_pupil_pos),
+                             "выходной диаметр зрачка, [мм]",             str(file.exit_pupil_dia),
+                             "выходное положение зрачка, [мм]",           str(file.exit_pupil_pos),
+                             "параксиальная высота изображения, [мм]",    str(file.parax_image_height),
+                             "параксиальное увеличение",                  str(file.parax_magnification),
+                             "угловое увеличение",                        str(file.angular_magnification),
+                             "полный опт. путь, [мм]",                    str(file.total_track),
+                             "сдвиг зрачка по x, [мм]",                   str(file.x_pupil_shift),
+                             "сдвиг зрачка по y, [мм]",                   str(file.y_pupil_shift),
+                             "сдвиг зрачка по z, [мм]",                   str(file.z_pupil_shift),
+                             "номер STOP поверхности",                    str(file.stop_surface_number),
+                             "Интегральный коэффициент пропускания, [%]", str(70.0),
+                             'Коэффициент виньетирования, [%]',           str(30.6),
+                             'Коэффициент экранирования, [%]',            str(32.2)))
 
         self.add_paragraph(f"\n\tСписок параметров полей схемы представлен в таблице {self._tables_count + 1}.",
                            alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
@@ -596,7 +599,7 @@ class Report:
         if show_main_info:
             self._basic_params(file)
         self._mtf_diagrams(file)
-        self._vignetting_tables(file)
+        # self._vignetting_tables(file)
         self._spot_diagrams(file)
         # self._spot_center_positions_interp_images(file)
         self._spot_diagrams_tables(file)
