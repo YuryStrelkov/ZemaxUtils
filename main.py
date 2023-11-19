@@ -5,6 +5,17 @@ from ZFile import COMMON_SCHEME_INFO
 
 
 def build_polychrome_matrix():
+    # Расположение Zemax файла прототипа
+    z_file_src = r"\ZemaxSchemes\prototype.zmx"
+    # Расположение файла с настройками, которе
+    # требуется применить к прототипу
+    z_task_src = r"\ZemaxScemesSettings\settings.json"
+    # Директория, где будут сохранены результаты
+    z_task_dir = r"\Tasks\PrototypeExample"
+    task = TaskBuilder(z_file_src, z_task_src)
+    task.create_task(z_task_dir)
+    task.run_task()
+
     """
     Создаёт задачу на основе схемы прототипа и списка настроек.
     :return:
@@ -19,7 +30,7 @@ def build_polychrome_matrix():
     z_task_dir = r"D:\Github\ZemaxUtils\Tasks\PolychromeIdeal"
     task = TaskBuilder(z_file_src, z_task_src)
     task.create_task(z_task_dir)
-    # task.run_task()
+    task.run_task()
     z_task_src = r"D:\Github\ZemaxUtils\ZemaxScemesSettings\fields_polychrome_real.json"
     z_task_dir = r"D:\Github\ZemaxUtils\Tasks\PolychromeReal"
     task = TaskBuilder(z_file_src, z_task_src)

@@ -20,12 +20,12 @@ class Plane:
         if origin is None:
             isinstance(normal, Vector3)
             self._origin: Vector3 = Vector3(0, 0, 0)
-            self._normal: Vector3 = normal
+            self._normal: Vector3 = normal.normalized
             return
 
         isinstance(normal, Vector3)
         isinstance(origin, Vector3)
-        self._normal: Vector3 = normal
+        self._normal: Vector3 = normal.normalized
         self._origin: Vector3 = origin
 
     def __str__(self) -> str:
@@ -41,7 +41,7 @@ class Plane:
         return True
 
     def flip(self):
-        self._normal *= -1
+        self._normal *= -1.0
         return self
 
     def flipped(self):
@@ -58,7 +58,7 @@ class Plane:
     @normal.setter
     def normal(self, value: Vector3) -> None:
         assert isinstance(value, Vector3)
-        self._normal = value
+        self._normal = value.normalized
 
     @origin.setter
     def origin(self, value: Vector3) -> None:
@@ -89,6 +89,6 @@ class Plane:
         assert isinstance(p1, Vector3)
         assert isinstance(p2, Vector3)
         assert isinstance(p3, Vector3)
-        normal = Vector3.cross(p2 - p1, p3 - p1).normalized()
+        normal = Vector3.cross(p2 - p1, p3 - p1).normalize()
         return cls(normal, p1)
 
