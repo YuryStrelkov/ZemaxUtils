@@ -18,3 +18,12 @@ from .camera import Camera
 from .plane import Plane
 from .ray import Ray
 from .common import *
+from .mutils import linear_regression
+from .mutils import bi_linear_regression
+from .mutils import polynom
+from .mutils import poly_regression
+from .mutils import poly_fit
+from .mutils import n_linear_regression
+from .mutils import quadratic_regression_2d
+from .mutils import second_order_surface
+from .mutils import quadratic_shape_fit
