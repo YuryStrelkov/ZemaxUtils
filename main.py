@@ -43,7 +43,7 @@ def build_matrices():
     :return:
     """
     z_file_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxSchemes\F_07g_04_Blenda_PI_Fin.zmx"
-    z_task_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxScemesSettings\monochrome.json"
+    z_task_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxScemesSettings\scheme_08_02_2024.json"
     z_task_dir = r"E:\Github\ZemaxUtils\ZemaxUtils\Tasks\Monochrome"
     task = TaskBuilder(z_file_src, z_task_src)
     task.create_task(z_task_dir)
@@ -65,23 +65,32 @@ def build_and_run_task_from_settings_list():
     Создаёт задачу на основе схемы прототипа и списка настроек.
     :return:
     """
-    z_file_src = r"E:\Github\ZemaxUtils\ZemaxSchemes\F_07g_04_Blenda_PI_Zern_Real.zmx"
-    z_task_src = r"E:\Github\ZemaxUtils\ZemaxScemesSettings\schemas.json"
-    z_task_dir = r"E:\Github\ZemaxUtils\TestTask"
+    z_file_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxSchemes\F_07g_04_Blenda_PI_Zern_Real.zmx"
+    z_task_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxScemesSettings\scheme_08_02_2024.json"
+    z_task_dir = r"E:\Github\ZemaxUtils\ZemaxUtils\scheme_08_02_2024"
     task = TaskBuilder(z_file_src, z_task_src)
     task.create_task(z_task_dir, COMMON_SCHEME_INFO)
     task.run_task()
 
 
 if __name__ == "__main__":
+    # build_and_run_task_from_settings_list()
+    root_dir = "E:\\Github\\ZemaxUtils\\ZemaxUtils\\"
+    rep = Report()
+    results = ResultFile()
+    results.load(f'{root_dir}\\scheme_08_02_2024\\Task\\Results\\deformed_scheme.json')
+    rep.update(results, True)
+    rep.save('deformed_scheme')
+    exit()
     # build_matrices()
     # exit()
     results = ResultFile()
 
+
+    ##################################################
     root_dir = "E:\\Github\\ZemaxUtils\\ZemaxUtils\\Tasks\\"
     mono_subdir = "Monochrome\\Task\\Results\\"
     poly_subdir = "Polychrome\\Task\\Results\\"
-    ##################################################
     rep = Report()
     total_rep = Report()
     total_rep.images_count = 10

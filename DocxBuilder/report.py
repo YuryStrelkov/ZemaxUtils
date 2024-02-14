@@ -113,14 +113,18 @@ class Report:
             font.name = font_name
             font.size = Pt(font_size)
             cell.paragraphs[0].alignment = alignment
-
-        for record_index, record in enumerate(data):
-            row, col = divmod(record_index, len(headers))
-            cell = table.rows[row + 1].cells[col]
-            cell.text = format_provider(record)
-            font = cell.paragraphs[0].runs[0].font
-            font.name = font_name
-            font.size = Pt(font_size)
+        row, col = 0, 0
+        try:
+            for record_index, record in enumerate(data):
+                row, col = divmod(record_index, len(headers))
+                # print(f'row: {row:>3} | col: {col:>3}')
+                cell = table.rows[row + 1].cells[col]
+                cell.text = format_provider(record)
+                font = cell.paragraphs[0].runs[0].font
+                font.name = font_name
+                font.size = Pt(font_size)
+        except IndexError as er:
+            print(f'IndexError at :: row: {row:>3} | col: {col:>3}\n {er.args}' )
         self._docx.add_page_break()
 
     def save(self, file_path: str):
