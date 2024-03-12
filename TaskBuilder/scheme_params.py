@@ -61,7 +61,7 @@ class SchemeParams:
                             self.description_short, self.description_long)
 
     @classmethod
-    def _read_scheme(cls, json_node):
+    def _read_scheme(cls, json_node) -> 'SchemeParams':
         surfaces = read_surfaces(json_node)
         waves = read_waves(json_node)
         fields = load_fields_params(json_node)
@@ -87,7 +87,7 @@ class SchemeParams:
         return cls(surfaces, remap_surf, description_short, description_long, fields, waves)
 
     @staticmethod
-    def _read_fields(cls, json_node):
+    def _read_fields(cls, json_node) -> 'SchemeParams':
         surfaces = read_surfaces(json_node)
         remap_surf = None
         description_short = "no description"
@@ -110,7 +110,7 @@ class SchemeParams:
         return cls(surfaces, remap_surf, description_short, description_long)
 
     @staticmethod
-    def read(file_path: str):
+    def read(file_path: str) -> List['SchemeParams']:
         if not os.path.exists(file_path):
             return []
         with open(file_path, "rt") as output_file:
@@ -123,7 +123,7 @@ class SchemeParams:
                 return [SchemeParams._read_scheme(json_file)]
             raise RuntimeError(f"Incorrect scheme file definition : {file_path}")
 
-    def shuffle(self, scale: float):
+    def shuffle(self, scale: float) -> 'SchemeParams':
         return SchemeParams([s.shuffle(scale) for s in self.surf_params], self.surf_remap,
                             self.description_short, self.description_long)
 

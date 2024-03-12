@@ -45,11 +45,11 @@ class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, 
         return {'Type': ZFields._FIELD_TYPES[self.ftyp[0]] if self.ftyp[0] in ZFields._FIELD_TYPES else "UNDEF",
                 'Field Normalization': 'Rectangular' if self.ftyp[4] == 1 else 'Radial',
                 'Number Of Fields': self.ftyp[2]}
-    
+
     @property
     def n_fields(self) -> int:
         return self.ftyp[2]
-    
+
     def __str__(self):
         return f"FTYP {' '.join(str(v) for v in self.ftyp)}\n" \
                f"XFLN {' '.join(str(v) for v in self.xfln)}\n" \

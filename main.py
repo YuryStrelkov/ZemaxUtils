@@ -2,6 +2,7 @@ from DocxBuilder.report import Report
 from ResultBuilder import *
 from TaskBuilder import *
 from ZFile import COMMON_SCHEME_INFO
+from ZFile.z_file import SCHEME_ALL_CALCULATIONS
 
 
 def build_polychrome_matrix():
@@ -66,21 +67,24 @@ def build_and_run_task_from_settings_list():
     :return:
     """
     z_file_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxSchemes\F_07g_04_Blenda_PI_Zern_Real.zmx"
-    z_task_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxScemesSettings\scheme_08_02_2024.json"
-    z_task_dir = r"E:\Github\ZemaxUtils\ZemaxUtils\scheme_08_02_2024"
+    z_task_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxScemesSettings\scheme_7_03_2024.json"
+    z_task_dir = r"E:\Github\ZemaxUtils\ZemaxUtils\scheme_7_03_2024"
     task = TaskBuilder(z_file_src, z_task_src)
-    task.create_task(z_task_dir, COMMON_SCHEME_INFO)
+    task.create_task(z_task_dir, SCHEME_ALL_CALCULATIONS)
     task.run_task()
 
 
 if __name__ == "__main__":
+    # ЧТО БЫ ПОСЧИТАТЬ, ЗАПУСТИ ЭТОТ КОД
     # build_and_run_task_from_settings_list()
+    # exit()
+    # А ПОСЛЕ РАСЧТЁТА ЭТОТ
     root_dir = "E:\\Github\\ZemaxUtils\\ZemaxUtils\\"
     rep = Report()
     results = ResultFile()
-    results.load(f'{root_dir}\\scheme_08_02_2024\\Task\\Results\\deformed_scheme.json')
+    results.load(f'{root_dir}\\scheme_7_03_2024\\Task\\Results\\no_description.json')
     rep.update(results, True)
-    rep.save('deformed_scheme')
+    rep.save('scheme_7_03_2024')
     exit()
     # build_matrices()
     # exit()

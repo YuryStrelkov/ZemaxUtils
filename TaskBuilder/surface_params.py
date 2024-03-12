@@ -15,6 +15,21 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
         return super().__new__(cls, surf_n, tilt, decenter, aperture,
                                curvature, even_asph, zernike)
 
+    def __iter__(self):
+        yield "surf_n", self.surf_n
+        yield ("tilt-x", self.tilt.x) if self.tilt else ("tilt-x", 0.0)
+        yield ("tilt-y", self.tilt.y) if self.tilt else ("tilt-y", 0.0)
+        yield ("decenter-x", self.decenter.x) if self.decenter else ("decenter-x", 0.0)
+        yield ("decenter-y", self.decenter.y) if self.decenter else ("decenter-y", 0.0)
+        yield ("aperture", self.aperture) if self.aperture else ("aperture", 0.0)
+        yield ("curvature", 1.0 / self.curvature) if self.curvature else ("curvature", 0.0)
+        if self.even_asph:
+            for index, value in enumerate(self.even_asph):
+                yield f"easph[{value}]", value
+        else:
+            for index in range(16):
+                yield f"easph[{index}]", 0.0
+
     def __str__(self):
         def formatter(_array):
             n = len(_array)

@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Union
+from typing import Union, List, Dict
 
 from .z_file import ZFileRaw
 
@@ -22,4 +22,12 @@ class ZWaves(namedtuple('ZFileRaw', 'wavelengths, weights')):
     def __str__(self):
         return ''.join(f'WAVM {index} {wl} {ww}\n' for index, (wl, ww) in enumerate(zip(self.wavelengths, self.weights)))
 
+    def __iter__(self):
+        for index, (wl, wlw) in enumerate(zip(self.wavelengths, self.weights)):
+            yield "wave_length_n", index
+            yield "wave_length", wl
+            yield "wave_weight", wlw
 
+    def waves(self) -> List[Dict[str, float]]:
+        return [{'wave_length_n': index, "wave_length": wl, 'wave_weight': wlw}
+                for index, (wl, wlw) in enumerate(zip(self.wavelengths, self.weights))]

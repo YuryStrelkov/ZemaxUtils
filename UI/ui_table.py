@@ -134,8 +134,8 @@ class UITableWidget(QTableWidget):
         self._remove_col(indices)
 
     @classmethod
-    def make_table(cls, parent, scheme: List[SurfaceParams]) -> 'UITableWidget':
-        table = cls(parent, 0)
+    def make_table(cls, scheme: List[SurfaceParams]) -> 'UITableWidget':
+        table = cls(None, 0)
         # parent.setCentralWidget(table)
         headers = ('surf_n', 'tilt-x,[rad]', 'tilt-y,[rad]', 'decenter-x,[mm]', 'decenter-y,[mm]', 'aperture,[mm]', 'surf-r,[mm]')
         for header in headers:
@@ -146,4 +146,25 @@ class UITableWidget(QTableWidget):
             table.append_row(tuple(str(v) if isinstance(v, int) else f"{v:>.4}"for v in params))
         table.colons_widths = (15, 100, 100, 100, 100, 100, 100)
         table.rows_heights  = 20
+        return table
+
+    @classmethod
+    def make_table_from_iterable(cls, values: List[Iterable],
+                                 colons_withs: Iterable[int] = None,
+                                 rows_heights: Iterable[int] = None) -> 'UITableWidget':
+        table = cls(None, 0)
+        if len(values) == 0:
+            return table
+        try:
+            headers = tuple(header for header, _ in values[0])
+            for header in headers:
+                table.append_col(header)
+        except Exception as ex:
+            print(f"type {type(values[0])} is not iterable...\n{ex.args}")
+            return table
+        for value in values:
+            params = tuple(str(val) if isinstance(val, int) else f"{val:>.4}" for _, val in value)
+            table.append_row(params)
+        table.colons_widths = tuple(v for v in colons_withs) if colons_withs else 100
+        table.rows_heights = tuple(v for v in rows_heights) if rows_heights else 20
         return table

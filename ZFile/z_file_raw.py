@@ -30,17 +30,17 @@ class ZFileRaw(namedtuple('ZFileRaw', 'header_params, footer_params, surfaces'))
     def read(cls, zmx_file_path: str):
         assert isinstance(zmx_file_path, str)
         if not os.path.exists(zmx_file_path):
-            return super().__new__(cls, {}, {}, {})
+            return super().__new__(cls, dict(), dict(), dict())
 
         with open(zmx_file_path, mode='r', encoding='utf-16') as _file:
             lines_raw = [line for line in _file]
 
         if len(lines_raw) == 0:
-            return super().__new__(cls, {}, {}, {})
+            return super().__new__(cls, dict(), dict(), dict())
 
-        surfaces_raw      = {}
-        header_params_raw = {}
-        footer_params_raw = {}
+        surfaces_raw      = dict()
+        header_params_raw = dict()
+        footer_params_raw = dict()
         last_surf          = None
 
         for line in lines_raw:

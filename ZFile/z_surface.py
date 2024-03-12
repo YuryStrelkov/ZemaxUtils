@@ -39,6 +39,17 @@ class ZSurfaceTransform:
         self.decenter        = Vector2(float(transform_line[3]), float(transform_line[4]))
         self.tilt            = Vector3(float(transform_line[5]), float(transform_line[6]), float(transform_line[7]))
 
+    def __iter__(self):
+        td = "\"Tilt, Decenter\""
+        dt = "\"Decenter, Tilt\""
+        yield 'Order', (dt if self._order == 0 else td)
+        yield 'After Surface', ZSurfaceTransform._AFTER_SURFACE[self._after_surface]
+        yield 'Decenter X', self.decenter.x
+        yield 'Decenter Y', self.decenter.y
+        yield 'Tilt X', self.tilt.x
+        yield 'Tilt Y', self.tilt.y
+        yield 'Tilt Z', self.tilt.z
+
     def __repr__(self):
         td = "\"Tilt, Decenter\""
         dt = "\"Decenter, Tilt\""
@@ -131,6 +142,16 @@ class ZSurface:
         self._extra_params: List[float] = []
         self._transforms:   List[ZSurfaceTransform] = []
         self._parce(surface)
+
+    def __iter__(self):
+        yield 'type', self._type
+        yield 'comment', self.comment
+        yield 'surf-r', 1.0  / self.curvature
+        yield ('semi_diam', 1.0  / float(self._semi_diam.params[0])) if self._semi_diam else ('semi_diam', 0.0)
+        yield 'z-distance', self.dist_z
+        yield ('material', self._material.params[0]) if self._material else ('material', 'none')
+        if len(self._params) == 0:
+            yield tuple((f'PARAM {index}', 0.0) for index in range(16))
 
     @property
     def surf_type(self) -> str:

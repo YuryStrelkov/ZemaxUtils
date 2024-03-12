@@ -16,6 +16,28 @@ class ZSequentialSettings(namedtuple('ZSequentialSettings',
                              float(raw_info[6]), float(raw_info[10]), int(raw_info[12]),
                              True if raw_info[6] == '1' else False, True if raw_info[13] == '1' else False)
 
+    def __iter__(self):
+        yield 'Setting', "max_intersections_per_ray"
+        yield 'Value', self.max_intersections_per_ray
+        yield 'Setting', "max_segments_per_ray"
+        yield 'Value', self.max_segments_per_ray
+        yield 'Setting', "max_nested_or_touching_objects"
+        yield 'Value', self.max_nested_or_touching_objects
+        yield 'Setting', "minimum_relative_ray_intensity"
+        yield 'Value', self.minimum_relative_ray_intensity
+        yield 'Setting', "minimum_absolute_ray_intensity"
+        yield 'Value', self.minimum_absolute_ray_intensity
+        yield 'Setting', "glue_distance_in_lens_unit"
+        yield 'Value', self.glue_distance_in_lens_unit
+        yield 'Setting', "missed_ray_draw_distance_in_lens_unit"
+        yield 'Value', self.missed_ray_draw_distance_in_lens_unit
+        yield 'Setting', "maximum_source_file_rays_in_memory"
+        yield 'Value', self.maximum_source_file_rays_in_memory
+        yield 'Setting', "retrace_source_file_upon_file_open"
+        yield 'Value', self.retrace_source_file_upon_file_open
+        yield 'Setting', "simple_ray_splitting"
+        yield 'Value', self.simple_ray_splitting
+
     def __repr__(self):
         return "{{\n" \
                f"\t\"MaxIntersectionsPerRay\":          {self.max_intersections_per_ray            :>12},\n" \

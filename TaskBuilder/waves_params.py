@@ -8,6 +8,10 @@ class Wave(namedtuple('Wave', 'lam, weight')):
     def __new__(cls, lam: float = 0.55, weight: float = 1.0):
         return super().__new__(cls, lam, weight)
 
+    def __iter__(self):
+        yield "lam", self.lam
+        yield "weight", self.weight
+
     def __str__(self):
         return f"{{ \"lam\" : {self.lam}, \"weight\" : {self.weight} }}"
 
