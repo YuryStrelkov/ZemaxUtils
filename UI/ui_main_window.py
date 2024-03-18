@@ -1,135 +1,24 @@
-from typing import List
-
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QLabel, QLineEdit, QPushButton, QWidget, \
-    QVBoxLayout, QTabWidget, QScrollArea, QSizePolicy
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget
+from PyQt5.QtGui import QIcon, QPalette, QColor
+from PyQt5.QtCore import Qt
 import sys
 
-from TaskBuilder import SchemeParams, SurfaceParams
-from UI.ui_table import UITableWidget
-from collapsible import CollapsibleBox
-
-
-class TextInputForm(QMainWindow):
-    def __init__(self, callback_func, frame_title, field_tite):
-        QMainWindow.__init__(self)
-        self.setMinimumSize(QSize(320, 140))
-        self.setWindowTitle(frame_title)
-
-        self.nameLabel = QLabel(self)
-        self.nameLabel.setText(f'{field_tite}:')
-        self.line = QLineEdit(self)
-
-        self.line.move(80, 20)
-        self.line.resize(200, 32)
-        self.nameLabel.move(20, 20)
-
-        pybutton = QPushButton('OK', self)
-        pybutton.clicked.connect(lambda v: self.parse_input_data(callback_func))
-        pybutton.resize(200, 32)
-        pybutton.move(80, 60)
-
-    def parse_input_data(self, callback_func):
-        callback_func(self.line.text())
-        self.destroy()
+from TaskBuilder import SchemeParams
+from UI.ui_task_file_view import UITaskFileView, UITaskFileViewsList
 
 
 class UITaskFileTab(QWidget):
     def __init__(self, parent=None):
         super(UITaskFileTab, self).__init__(parent)
         self.setLayout(QVBoxLayout())
-        scroll = QScrollArea()
-        content = QWidget()
-        content.setLayout(QVBoxLayout())
-        scroll.setWidget(content)
-        scroll.setWidgetResizable(True)
-        content.layout().setAlignment(Qt.AlignTop)
-        self._scheme_common_info = CollapsibleBox(title="SCHEME COMMON")
-        self._scheme_fields      = CollapsibleBox(title="SCHEME FIELDS")
-        self._scheme_waves       = CollapsibleBox(title="SCHEME WAVES")
-        self._scheme_surfaces    = CollapsibleBox(title="SCHEME SURFACES")
-        self._scheme_extra_data  = CollapsibleBox(title="SCHEME EXTRA DATA")
-        content.layout().addWidget(self._scheme_common_info)
-        content.layout().addWidget(self._scheme_fields)
-        content.layout().addWidget(self._scheme_waves)
-        content.layout().addWidget(self._scheme_surfaces)
-        content.layout().addWidget(self._scheme_extra_data)
-        content.layout().addStretch()
-        self.layout().addWidget(scroll)
+        self._task_file_ui = UITaskFileView()
+        self.layout().addWidget(self._task_file_ui)
 
-    def set_scheme_waves(self, scheme: SchemeParams) -> 'UITaskFileTab':
-        if not scheme.waves:
-            info_layout = QVBoxLayout()
-            info_label = QLabel()
-            info_label.setText("No wave lengths data...")
-            info_layout.addWidget(info_label)
-            self._scheme_waves.set_content_layout(info_layout)
-            return self
-        layout = QVBoxLayout()
-        layout.addWidget(UITableWidget.make_table_from_iterable(scheme.waves))
-        self._scheme_waves.set_content_layout(layout)
-        return self
-
-    def set_scheme_fields(self, scheme: SchemeParams) -> 'UITaskFileTab':
-        if not scheme.fields:
-            info_layout = QVBoxLayout()
-            info_label = QLabel()
-            info_label.setText("No fields data...")
-            info_layout.addWidget(info_label)
-            self._scheme_fields.set_content_layout(info_layout)
-            return self
-        layout = QVBoxLayout()
-        layout.addWidget(UITableWidget.make_table_from_iterable(scheme.fields.fields))
-        self._scheme_fields.set_content_layout(layout)
-        return self
-
-    def set_scheme_surfaces(self, scheme: SchemeParams) -> 'UITaskFileTab':
-        if not scheme.surf_params:
-            info_layout = QVBoxLayout()
-            info_label = QLabel()
-            info_label.setText("No surfaces data...")
-            info_layout.addWidget(info_label)
-            self._scheme_surfaces.set_content_layout(info_layout)
-            return self
-        layout = QVBoxLayout()
-        layout.addWidget(UITableWidget.make_table_from_iterable(scheme.surf_params))
-        self._scheme_surfaces.set_content_layout(layout)
-        return self
-
-    def set_scheme_extra_data(self, scheme: SchemeParams) -> 'UITaskFileTab':
-        if not scheme.surf_params:
-            info_layout = QVBoxLayout()
-            info_label = QLabel()
-            info_label.setText("No extra data...")
-            info_layout.addWidget(info_label)
-            self._scheme_extra_data.set_content_layout(info_layout)
-            return self
-        params: List[SurfaceParams] = scheme.surf_params
-        params_t = []
-        for i, p in enumerate(params):
-            params_t.append([('surf_n', i)])
-            params_t[-1].extend((f"Zernike {i}", z) for i, z in enumerate(p.zernike))
-        layout = QVBoxLayout()
-        layout.addWidget(UITableWidget.make_table_from_iterable(params_t))
-        self._scheme_extra_data.set_content_layout(layout)
-        return self
-
-    def set_scheme_common_info(self, scheme: SchemeParams) -> 'UITaskFileTab':
-        layout = QVBoxLayout()
-        info1 = QLabel()
-        info2 = QLabel()
-        info1.setText(scheme.description_short)
-        info2.setText(scheme.description_long)
-        layout.addWidget(info1)
-        layout.addWidget(info2)
-        self._scheme_common_info.set_content_layout(layout)
-        return self
+    def setup(self, content: SchemeParams) -> None:
+        self._task_file_ui.setup(content)
 
 
 class UIMainWindow(QMainWindow):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('MainWindow')
@@ -158,11 +47,7 @@ class UIMainWindow(QMainWindow):
         tab    = QWidget()
         tab.setLayout(QVBoxLayout())
         scheme_tab = UITaskFileTab()
-        scheme_tab.set_scheme_fields(content)
-        scheme_tab.set_scheme_waves(content)
-        scheme_tab.set_scheme_surfaces(content)
-        scheme_tab.set_scheme_extra_data(content)
-        scheme_tab.set_scheme_common_info(content)
+        scheme_tab.setup(content)
         tab.layout().addWidget(scheme_tab)  # QLabel("TAB"))
         return tab
 
@@ -171,27 +56,19 @@ class UIMainWindow(QMainWindow):
         tab    = QWidget()
         tab.setLayout(QVBoxLayout())
         scheme_tab = UITaskFileTab()
-        scheme_tab.set_scheme_fields(content)
-        scheme_tab.set_scheme_waves(content)
-        scheme_tab.set_scheme_surfaces(content)
-        scheme_tab.set_scheme_extra_data(content)
-        scheme_tab.set_scheme_common_info(content)
+        scheme_tab.setup(content)
         tab.layout().addWidget(scheme_tab)  # QLabel("TAB"))
         return tab
 
-    def create_task_file_tabs(self, src_file: str = "../ZemaxScemesSettings/polychrome.json"):
+    def create_task_file_tabs(self, src_file: str = "../ZemaxSchemesSettings/combined_params.json"):
         if self._tasks_files_tabs:
-            self._task_file_tab.layout().removeWidget(self._tasks_files_tabs)
-
-        self._tasks_files_tabs = QTabWidget()
+            self._tasks_files_tabs.deleteLater()
+        self._tasks_files_tabs =  UITaskFileViewsList()  # QTabWidget()
         self._task_file_tab.layout().addWidget(self._tasks_files_tabs)
-
-        file_name = src_file.split('/')[-1].split('.')[0]
         scheme = SchemeParams.read(src_file)
-        [self._tasks_files_tabs.addTab(self.cretae_task_file_tab(t),
-                                       f"{file_name} : scheme{i:3}") for i, t in enumerate(scheme)]
+        self._tasks_files_tabs.setup(scheme)
 
-    def create_zemax_file_tabs(self, src_file: str = "../ZemaxScemesSettings/polychrome.json"):
+    def create_zemax_file_tabs(self, src_file: str = "../ZemaxSchemesSettings/polychrome.json"):
         if self._zemax_files_tabs:
             self._zmx_file_tab.layout().removeWidget(self._zemax_files_tabs)
 
@@ -230,6 +107,31 @@ class UIMainWindow(QMainWindow):
 
 def run():
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    font_size = 11
+    font_name = "Consolas"
+    app.setStyleSheet(f'.QLabel      {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
+                      f'.QTabWidget  {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
+                      f'.QToolButton {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
+                      f'.QPushButton {{ font-family: {font_name};\nfont-size: {font_size - 1}pt;}}\n'
+                      f'.QHeaderView {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
+                      f'.QTableWidgetItem {{ font-size: {font_size}pt;}}')
+    # Now use a palette to switch to dark colors:
+    palette = QPalette()
+    palette.setColor(QPalette.Window, QColor(53, 53, 53))
+    palette.setColor(QPalette.WindowText, Qt.white)
+    palette.setColor(QPalette.Base, QColor(25, 25, 25))
+    palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+    palette.setColor(QPalette.ToolTipBase, Qt.black)
+    palette.setColor(QPalette.ToolTipText, Qt.white)
+    palette.setColor(QPalette.Text, Qt.white)
+    palette.setColor(QPalette.Button, QColor(53, 53, 53))
+    palette.setColor(QPalette.ButtonText, Qt.white)
+    palette.setColor(QPalette.BrightText, Qt.red)
+    palette.setColor(QPalette.Link, QColor(42, 130, 218))
+    palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+    palette.setColor(QPalette.HighlightedText, Qt.black)
+    app.setPalette(palette)
     window = UIMainWindow()
     sys.exit(app.exec())
 

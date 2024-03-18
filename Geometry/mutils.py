@@ -171,7 +171,8 @@ def poly_regression(x: np.ndarray, y: np.ndarray, order: int = 5) -> np.ndarray:
         return np.linalg.inv(a_m) @ c_m
     except LinAlgError as err:
         print(err.args)
-        return np.array(linear_regression(x, y))
+        a, b = linear_regression(x, y)
+        return np.array((a, b, 0, 0, 0, 0), dtype=float)
 
 
 def poly_fit(x: np.ndarray, x_points: np.ndarray, y_points: np.ndarray, order: int = 16) -> np.ndarray:

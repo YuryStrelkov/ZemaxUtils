@@ -9,6 +9,7 @@ from PyQt5.QtGui import QIcon
 
 from TaskBuilder import SchemeParams, SurfaceParams
 from UI.ui_table import UITableWidget
+# TODO remove
 
 
 class MainWindow(QMainWindow):
@@ -17,8 +18,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Employees')
         self.setWindowIcon(QIcon('./assets/usergroup.png'))
         self.setGeometry(100, 100, 665, 400)
-        params = SchemeParams.read("../ZemaxScemesSettings/scheme_08_02_2024.json")[-1].surf_params
-        self.table = UITableWidget.make_table(self, params)
+        params = SchemeParams.read("../ZemaxSchemesSettings/scheme_08_02_2024.json")[-1].surf_params
+        self.table = UITableWidget.make_table(params)
         dock = QDockWidget('table-editor')
         dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)

@@ -1,4 +1,4 @@
-from typing import List, Any, Dict, Union
+from typing import List, Any, Dict, Union, Tuple
 from Geometry import Vector3, Vector2
 from collections import namedtuple
 
@@ -132,6 +132,7 @@ class ZSurface:
     def __init__(self, surface: Dict[str, List[str]]):
         self._curvature:    Union[ZFileField, None] = None
         self._semi_diam:    Union[ZFileField, None] = None
+        self._semi_clap:    Union[ZFileField, None] = None
         self._material:     Union[ZFileField, None] = None
         self._others:       List[ZFileField]  = []
         self._type:         str         = "STANDARD"
@@ -230,13 +231,27 @@ class ZSurface:
             self._transforms[index].decenter = decenter
 
     @property
-    def aperture(self):
+    def aperture(self) -> Union[Tuple[float, float], float]:
+        if self._semi_clap:
+            return self._semi_clap.params[0], self._semi_clap.params[1]
         return self._semi_diam.params[0]
 
     @aperture.setter
-    def aperture(self, value: float) -> None:
-        assert isinstance(value, float)
-        self._semi_diam.params[0] = max(0.0, value)
+    def aperture(self, value: Union[Tuple[float, float], float]) -> None:
+        if self._semi_diam.key == "DIAM":
+            assert isinstance(value, float)
+            self._semi_diam.params[0] = max(0.0, value)
+            return
+        if isinstance(value, float):
+            self._semi_diam.params[0] = min(value, self._semi_diam.params[0])
+            self._semi_diam.params[1] = max(value, self._semi_diam.params[1])
+            return
+        if isinstance(value, tuple):
+            dmin, dmax = value[0], value[1]
+            assert isinstance(dmin, float)
+            assert isinstance(dmax, float)
+            self._semi_diam.params[0] = dmin
+            self._semi_diam.params[1] = dmax
 
     @property
     def curvature(self):
@@ -273,6 +288,8 @@ class ZSurface:
             if key == "GLAS":
                 self._material = ZFileField(key + " " + value[0])
                 continue
+            if key == "CLAP":
+                self._semi_clap = ZFileField(key + " " + value[0])
             if key == "DIAM":
                 self._semi_diam = ZFileField(key + " " + value[0])
                 continue
@@ -298,7 +315,11 @@ class ZSurface:
         self._type = 'SZERNSAG'
         self._extra_params.clear()
         self._extra_params.append(ZSurface.MAX_ZERNIKE_TERM)
-        self._extra_params.append(self.aperture)
+        #
+        # НОРМИРОВКА ПОЛИНОМА ЦЕРНИКЕ ???
+        #
+        aperture = self.aperture
+        self._extra_params.append(aperture if isinstance(aperture, float) else aperture[-1])
         for index, value in enumerate(zernike_params):
             if index == ZSurface.MAX_ZERNIKE_TERM:
                 break

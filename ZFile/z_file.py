@@ -1,6 +1,8 @@
 from typing import List, Dict, Union
 import os.path
 import os
+
+from Geometry import Vector3
 from TaskBuilder import SchemeParams
 from .z_surface import ZFileField
 from .z_file_raw import ZFileRaw
@@ -130,20 +132,20 @@ class ZFile:
         for surf in surfaces:
             surf_id = surf.surf_n
             if remap is not None:
-                surf_id = remap[surf_id] if surf_id in remap else -1
+                # TODO убрать surf_id + 1
+                surf_id = remap[surf_id + 1] if surf_id + 1 in remap else -1
             if not self.contains_surf(surf_id):
                 continue
-            surface = self._surfaces[surf_id]
+            surface: ZSurface = self._surfaces[surf_id]
             # if surf.decenter is not None:
-            #     self.set_surf_decenter_before(surf_id, surf.decenter)
+            #     surface.decenter_before = surf.decenter
             # if surf.tilt is not None:
-            #     self.set_surf_tilt_before    (surf_id, Vector3(surf.tilt.x, surf.tilt.y, 0.0))
-            if surf.aperture is not None:
-                surface.aperture = surf.aperture
-
+            #     surface.tilt_before = Vector3(surf.tilt.x, surf.tilt.y, 0.0)
+                # surf.set_surf_tilt_before    (surf_id, Vector3(surf.tilt.x, surf.tilt.y, 0.0))
+            # if surf.aperture is not None:
+            #     surface.aperture = surf.aperture
             # if surf.curvature is not None:
-            #     self.set_surf_curvature     (surf_id, self.get_surf_aperture(surf_id) + surf.curvature)
-
+            #     surface.curvature = surf.curvature
             if surf.zernike is None and surf.even_asph is None:
                 continue
             if surf.zernike is None:

@@ -535,7 +535,12 @@ class Report:
         y_cords = file.x_image_pos_per_angle_from_psf
         for wave_id, psf_cords in enumerate(x_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
-            data.extend([f'{v:.3f}' for v in poly_regression(psf_cords, angles_x, 6).flat])
+            if psf_cords.size != 0:
+                length = min(psf_cords.size, angles_x.size)
+                data.extend([f'{v:.3f}' for v in poly_regression(psf_cords[0:length], angles_x[0:length], 6).flat])
+            else:
+                data.extend([f'NAN' for _ in range(6)])
+
         self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '
@@ -544,7 +549,11 @@ class Report:
         data.clear()
         for wave_id, psf_cords in enumerate(y_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
-            data.extend(list(map(lambda v: f'{v:.3f}', poly_regression(psf_cords, angles_y, 6).flat)))
+            if psf_cords.size != 0:
+                length = min(psf_cords.size, angles_x.size)
+                data.extend([f'{v:.3f}' for v in poly_regression(psf_cords[0:length], angles_x[0:length], 6).flat])
+            else:
+                data.extend([f'NAN' for _ in range(6)])
         self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '

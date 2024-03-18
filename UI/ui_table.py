@@ -1,7 +1,6 @@
 #  https://www.pythontutorial.net/pyqt/pyqt-qtablewidget/
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QMessageBox
 from typing import List, Iterable, Union, Tuple
-
 from TaskBuilder import SurfaceParams
 
 
@@ -133,6 +132,7 @@ class UITableWidget(QTableWidget):
                 return
         self._remove_col(indices)
 
+    # TODO remove
     @classmethod
     def make_table(cls, scheme: List[SurfaceParams]) -> 'UITableWidget':
         table = cls(None, 0)

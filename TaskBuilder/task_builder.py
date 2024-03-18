@@ -101,7 +101,7 @@ class TaskBuilder:
 
     @property
     def task_file_src(self) -> str:
-        return self._z_file_proto_src
+        return self._task_file_src
 
     @task_file_src.setter
     def task_file_src(self, value: str) -> None:
@@ -167,8 +167,11 @@ class TaskBuilder:
             with open(self._task_results_directory + task.description_short.replace(" ", "_").replace(",", "") + ".json", "wt"):
                 pass
         with open(self._task_working_directory + "SCHEMES_LIST.TXT", "wt") as task_list:
+            # print(r"call script \"READ_AND_COMPUTE.ZMX\"", file=task_list)
+            # print(f"with arg {self._task_working_directory}SCHEMES_LIST.TXT", file=task_list)
             print(f'root: {self._task_working_directory}', file=task_list)
-            print(f'compute_settings: {" ".join("1" if task_info & v == v else "0" for v in (1, 2, 4, 8))}', file=task_list)
+            print(f'compute_settings: {" ".join("1" if task_info & v == v else "0" for v in (1, 2, 4, 8))}',
+                  file=task_list)
             print('\n'.join(f"file: {v}" for v in task_files), file=task_list)
 
         return True

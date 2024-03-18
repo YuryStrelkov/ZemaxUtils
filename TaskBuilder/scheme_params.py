@@ -1,7 +1,7 @@
 from .surface_params import SurfaceParams
 from .surface_params import read_surfaces
 from .fields_params import FieldsParams, load_fields_params
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Iterable
 from .waves_params import Wave, read_waves
 import json
 import os
@@ -122,6 +122,34 @@ class SchemeParams:
             if 'scheme' in json_file:
                 return [SchemeParams._read_scheme(json_file)]
             raise RuntimeError(f"Incorrect scheme file definition : {file_path}")
+
+    @staticmethod
+    def read_and_merge(file_paths: Iterable[str]) -> List['SchemeParams']:
+        params_list = []
+        # reading each scheme in list
+        for f_path in file_paths:
+            try:
+                params_list.extend(SchemeParams.read(f_path))
+            except RuntimeError as er:
+                print(f"SchemeParams::read_and_merge error::\n{er.args}")
+        # make unique name for each scheme in list
+        name_occurs: Dict[str, int] = {}
+        for params in params_list:
+            if params.description_short in name_occurs:
+                name_occurs[params.description_short] += 1
+                params.description_short = '_'.join(str(v) for v in (params.description_short,
+                                                                     name_occurs[params.description_short]))
+            else:
+                name_occurs[params.description_short] = 0
+        return params_list
+
+    @staticmethod
+    def write_params_list(file_name: str, params: List['SchemeParams']):
+        with open(file_name, 'wt') as out_file:
+            sep = ',\n'
+            print(f"{{\n"
+                  f"\t\"schemas\":[\n{sep.join(str(p) for p in params)}]"
+                  f"\n}}", file=out_file, end='')
 
     def shuffle(self, scale: float) -> 'SchemeParams':
         return SchemeParams([s.shuffle(scale) for s in self.surf_params], self.surf_remap,
