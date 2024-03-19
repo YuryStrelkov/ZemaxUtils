@@ -1,3 +1,5 @@
+import json
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget
 from PyQt5.QtGui import QIcon, QPalette, QColor
 from PyQt5.QtCore import Qt
@@ -105,33 +107,80 @@ class UIMainWindow(QMainWindow):
         self.close()
 
 
+PALETTE_KEYS = {"Active": 0,
+                "All": 5,
+                "AlternateBase": 16,
+                "Background": 10,
+                "Base": 9,
+                "BrightText": 7,
+                "Button": 1,
+                "ButtonText": 8,
+                "Current": 4,
+                "Dark": 4,
+                "Disabled": 1,
+                "Foreground": 0,
+                "Highlight": 12,
+                "HighlightedText": 13,
+                "Inactive": 2,
+                "Light": 2,
+                "Link": 14,
+                "LinkVisited": 15,
+                "Mid": 5,
+                "Midlight": 3,
+                "NColorGroups": 3,
+                "NColorRoles": 21,
+                "Normal": 0,
+                "NoRole": 17,
+                "PlaceholderText": 20,
+                "Shadow": 11,
+                "Text": 6,
+                "ToolTipBase": 18,
+                "ToolTipText": 19,
+                "Window": 10,
+                "WindowText": 0}
+
+
+def _load_palette(src: dict) -> QPalette():
+        if 'Palette' not in src:
+            return QPalette()
+        palette = src['Palette']
+        q_palette = QPalette()
+        for key, val in palette.items():
+            if key not in PALETTE_KEYS:
+                continue
+            q_palette.setColor(PALETTE_KEYS[key], QColor(*tuple(int(v) for v in val.values())))
+        return q_palette
+
+
+def load_style(style_src: str, application: QApplication) -> None:
+    with open(style_src, 'rt') as input_file:
+        json_file = json.load(input_file)
+        application.setPalette(_load_palette(json_file))
+        if 'WidgetsStyles' not in json_file:
+            return
+        widgets_styles = json_file['WidgetsFontStyles']
+        style_sheet = []
+        for style in widgets_styles:
+            if 'selector' not in style:
+                continue
+            selector = style['selector']
+            font_family = 'Arial'
+            font_size = '10'
+            font_units = 'pt'
+            if 'font-family' in style:
+                font_family = style['font-family']
+            if 'font-size' in style:
+                font_size = style['font-size']
+            if 'font-units' in style:
+                font_units = style['font-units']
+            style_sheet.append(f"{selector}{{font-family: {font_family}; font-size: {font_size}{font_units};}}")
+        application.setStyleSheet('\n'.join(v for v in style_sheet))
+
+
 def run():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    font_size = 11
-    font_name = "Consolas"
-    app.setStyleSheet(f'.QLabel      {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
-                      f'.QTabWidget  {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
-                      f'.QToolButton {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
-                      f'.QPushButton {{ font-family: {font_name};\nfont-size: {font_size - 1}pt;}}\n'
-                      f'.QHeaderView {{ font-family: {font_name};\nfont-size: {font_size}pt;}}\n'
-                      f'.QTableWidgetItem {{ font-size: {font_size}pt;}}')
-    # Now use a palette to switch to dark colors:
-    palette = QPalette()
-    palette.setColor(QPalette.Window, QColor(53, 53, 53))
-    palette.setColor(QPalette.WindowText, Qt.white)
-    palette.setColor(QPalette.Base, QColor(25, 25, 25))
-    palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-    palette.setColor(QPalette.ToolTipBase, Qt.black)
-    palette.setColor(QPalette.ToolTipText, Qt.white)
-    palette.setColor(QPalette.Text, Qt.white)
-    palette.setColor(QPalette.Button, QColor(53, 53, 53))
-    palette.setColor(QPalette.ButtonText, Qt.white)
-    palette.setColor(QPalette.BrightText, Qt.red)
-    palette.setColor(QPalette.Link, QColor(42, 130, 218))
-    palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-    palette.setColor(QPalette.HighlightedText, Qt.black)
-    app.setPalette(palette)
+    load_style('../dark_theme_palette.json', app)
     window = UIMainWindow()
     sys.exit(app.exec())
 
