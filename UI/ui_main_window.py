@@ -2,11 +2,12 @@ import json
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget
 from PyQt5.QtGui import QIcon, QPalette, QColor
-from PyQt5.QtCore import Qt
 import sys
 
 from TaskBuilder import SchemeParams
 from UI.ui_task_file_view import UITaskFileView, UITaskFileViewsList
+from UI.ui_zemax_file_view import UIZemaxFileView
+from ZFile import ZFile
 
 
 class UITaskFileTab(QWidget):
@@ -70,17 +71,15 @@ class UIMainWindow(QMainWindow):
         scheme = SchemeParams.read(src_file)
         self._tasks_files_tabs.setup(scheme)
 
-    def create_zemax_file_tabs(self, src_file: str = "../ZemaxSchemesSettings/polychrome.json"):
+    def create_zemax_file_tabs(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
         if self._zemax_files_tabs:
             self._zmx_file_tab.layout().removeWidget(self._zemax_files_tabs)
 
-        self._zemax_files_tabs = QTabWidget()
+        self._zemax_files_tabs =  UIZemaxFileView()  # QTabWidget()
         self._zmx_file_tab.layout().addWidget(self._zemax_files_tabs)
-
-        file_name = src_file.split('/')[-1].split('.')[0]
-        scheme = SchemeParams.read(src_file)
-        [self._zemax_files_tabs.addTab(self.cretae_task_file_tab(t),
-                                       f"{file_name} : scheme{i:3}") for i, t in enumerate(scheme)]
+        scheme = ZFile()
+        scheme.load(src_file)
+        self._zemax_files_tabs.setup(scheme)
 
     def _build_menu_bar(self):
         menu_bar = self.menuBar()

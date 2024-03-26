@@ -144,15 +144,72 @@ class ZSurface:
         self._transforms:   List[ZSurfaceTransform] = []
         self._parce(surface)
 
+    @property
+    def material(self):
+        return self._material
+
     def __iter__(self):
         yield 'type', self._type
         yield 'comment', self.comment
-        yield 'surf-r', 1.0  / self.curvature
-        yield ('semi_diam', 1.0  / float(self._semi_diam.params[0])) if self._semi_diam else ('semi_diam', 0.0)
+        yield 'surf-r', 1.0  / self.curvature if  self.curvature != 0.0 else 0.0
         yield 'z-distance', self.dist_z
+        yield ('semi_diam', float(self._semi_diam.params[0])) if self._semi_diam else ('semi_diam', 0.0)
+        yield 'conic', self.conic
         yield ('material', self._material.params[0]) if self._material else ('material', 'none')
         if len(self._params) == 0:
-            yield tuple((f'PARAM {index}', 0.0) for index in range(16))
+            for index in range(8):
+                yield f'PARAM {index}', 0.0
+        else:
+            for index, value in enumerate(self._params):
+                yield f'PARAM {index + 1}', value
+
+    @property
+    def transforms_info(self):
+        """
+        yield 'Order', (dt if self._order == 0 else td)
+        yield 'After Surface', ZSurfaceTransform._AFTER_SURFACE[self._after_surface]
+        yield 'Decenter X', self.decenter.x
+        yield 'Decenter Y', self.decenter.y
+        yield 'Tilt X', self.tilt.x
+        yield 'Tilt Y', self.tilt.y
+        yield 'Tilt Z', self.tilt.z
+        """
+        t_index = self._has_transform_before
+        if t_index == -1:
+            yield 'Before:Order', '-'
+            yield 'Before:After Surface', '-'
+            yield 'Before:Decenter X', '-'
+            yield 'Before:Decenter Y', '-'
+            yield 'Before:Tilt X', '-'
+            yield 'Before:Tilt Y', '-'
+            yield 'Before:Tilt Z', '-'
+        else:
+            t = self._transforms[t_index]
+            yield 'Before:Order', t.order
+            yield 'Before:After Surface', t.after_surface
+            yield 'Before:Decenter X', t.decenter.x
+            yield 'Before:Decenter Y', t.decenter.y
+            yield 'Before:Tilt X', t.tilt.x
+            yield 'Before:Tilt Y', t.tilt.y
+            yield 'Before:Tilt Z', t.tilt.z
+        t_index = self._has_transform_after
+        if t_index == -1:
+            yield 'After:Order', '-'
+            yield 'After:After Surface', '-'
+            yield 'After:Decenter X', '-'
+            yield 'After:Decenter Y', '-'
+            yield 'After:Tilt X', '-'
+            yield 'After:Tilt Y', '-'
+            yield 'After:Tilt Z', '-'
+        else:
+            t = self._transforms[t_index]
+            yield 'After:Order', t.order
+            yield 'After:After Surface', t.after_surface
+            yield 'After:Decenter X', t.decenter.x
+            yield 'After:Decenter Y', t.decenter.y
+            yield 'After:Tilt X', t.tilt.x
+            yield 'After:Tilt Y', t.tilt.y
+            yield 'After:Tilt Z', t.tilt.z
 
     @property
     def surf_type(self) -> str:
@@ -164,7 +221,11 @@ class ZSurface:
             return -1
         if len(self._transforms) == 1:
             return 0 if self._transforms[0].order == 0 else -1
-        return 0 if self._transforms[0].order == 0 else 1
+        if self._transforms[0].order == 0:
+            return 0
+        if self._transforms[1].order == 0:
+            return 1
+        return -1
 
     @property
     def _has_transform_after(self) -> int:
@@ -172,7 +233,11 @@ class ZSurface:
             return -1
         if len(self._transforms) == 1:
             return 0 if self._transforms[0].order == 1 else -1
-        return 0 if self._transforms[0].order == 1 else 1
+        if self._transforms[0].order == 1:
+            return 0
+        if self._transforms[1].order == 1:
+            return 1
+        return -1
 
     @property
     def has_transform_before(self) -> bool:
@@ -255,12 +320,20 @@ class ZSurface:
 
     @property
     def curvature(self):
-        return self._semi_diam.params[0]
+        return self._curvature.params[0]
 
     @curvature.setter
     def curvature(self, value: float) -> None:
         assert isinstance(value, float)
         self._curvature.params[0] = value
+
+    @property
+    def params(self) -> List[float]:
+        return self._params
+
+    @property
+    def extra_params(self) -> List[float]:
+        return self._extra_params
 
     def _parce(self, surface: Dict[str, List[str]]):
         for key, value in surface.items():

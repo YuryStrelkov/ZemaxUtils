@@ -13,7 +13,6 @@ class ZWaves(namedtuple('ZFileRaw', 'wavelengths, weights')):
         assert 'WAVM' in z_file.header_params
         n_wl = min(int(z_file.header_params['FTYP'][0].split(' ')[3]), ZWaves.ZEMAX_MAX_WL_COUNT)
         wls = [tuple(map(float, wl.split(' ')[1:])) for wl in z_file.header_params['WAVM'][0:n_wl]]
-
         return super().__new__(cls, [v[0] for v in wls], [v[1] for v in wls])
 
     def n_waves(self) -> int:

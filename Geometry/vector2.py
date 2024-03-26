@@ -244,6 +244,16 @@ class Vector2:
         return cls((y * da.x - x * db.x) * det, (y * da.y - x * db.y) * det)
 
     @classmethod
+    def reflect(cls, direction: 'Vector2', normal: 'Vector2'):
+        return cls(*(direction - 2.0 * Vector2.dot(direction, normal) * normal))
+
+    @classmethod
+    def refract(cls, direction: 'Vector2', normal: 'Vector2', ri1: float, ri2: float):
+        dn = ri1 * Vector2.dot(direction, normal)
+        ratio = (math.sqrt((ri2 * ri2 - ri1 * ri1) / (dn * dn) + 1) - 1) * dn
+        return cls(*(ri1 * direction + ratio * normal).normalized)
+
+    @classmethod
     def from_np_array(cls, array: np.ndarray):
         assert isinstance(array, np.ndarray)
         assert array.size == 2

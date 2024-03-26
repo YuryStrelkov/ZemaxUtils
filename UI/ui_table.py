@@ -149,21 +149,22 @@ class UITableWidget(QTableWidget):
         return table
 
     @classmethod
-    def make_table_from_iterable(cls, values: List[Iterable],
+    def make_table_from_iterable(cls, values: Union[List[Iterable], Tuple[Iterable, ...]],
                                  colons_withs: Iterable[int] = None,
                                  rows_heights: Iterable[int] = None) -> 'UITableWidget':
         table = cls(None, 0)
         if len(values) == 0:
             return table
         try:
-            headers = tuple(header for header, _ in values[0])
+            first = values[0]
+            headers = tuple(header for header, _ in first)
             for header in headers:
                 table.append_col(header)
         except Exception as ex:
             print(f"type {type(values[0])} is not iterable...\n{ex.args}")
             return table
         for value in values:
-            params = tuple(str(val) if isinstance(val, int) else f"{val:>.4}" for _, val in value)
+            params = tuple(str(val) if isinstance(val, int) or isinstance(val, str) else f"{val:>.4}" for _, val in value)
             table.append_row(params)
         table.colons_widths = tuple(v for v in colons_withs) if colons_withs else 100
         table.rows_heights = tuple(v for v in rows_heights) if rows_heights else 20

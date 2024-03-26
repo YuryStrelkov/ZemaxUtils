@@ -1,8 +1,6 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple, Any
 import os.path
 import os
-
-from Geometry import Vector3
 from TaskBuilder import SchemeParams
 from .z_surface import ZFileField
 from .z_file_raw import ZFileRaw
@@ -32,6 +30,14 @@ class ZFile:
         self._fields: Union[ZFields, None] = None
         self._waves: Union[ZWaves, None] = None
         self.load(file_path)
+
+    @property
+    def surfaces(self) -> Dict[int, ZSurface]:
+        return self._surfaces
+
+    @property
+    def surfaces_params(self) -> Tuple[Tuple[Tuple[str, Any], ...], ...]:
+        return tuple(tuple(param for param in surface) for surface in self.surfaces.values())
 
     @property
     def waves(self) -> ZWaves:
@@ -77,6 +83,14 @@ class ZFile:
     def contains_surf(self, surf_id: int) -> bool:
         assert isinstance(surf_id, int)
         return surf_id in self._surfaces
+
+    @property
+    def common_params(self):
+        yield ('param', 'version'), ('value', ':'.join(str(int(v))for v in self.version.params) if self.version else '-')
+        yield ('param', 'mode'), ('value', self.mode.params[0] if self.mode else '-')
+        yield ('param', 'name'), ('value', self.name.params[0] if self.name else '-')
+        yield ('param', 'units'), ('value', self.units.params[0] if self.units else '-')
+        yield ('param', 'enter_pupil_diameter'), ('value', self.enter_pupil_diameter.params[0] if self.enter_pupil_diameter else '-')
 
     @property
     def version(self) -> Union[ZFileField, None]:

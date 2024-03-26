@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from .z_file import ZFileRaw
 
 
@@ -35,16 +35,22 @@ class ZFields(namedtuple('ZFileRaw', 'ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, 
         return super().__new__(cls, ftyp, xfln, yfln, fwgn, vdxn, vdyn, vcxn, vcyn, vann)
 
     @property
-    def fields(self) -> List[Dict[str, float]]:
-        return [{'X-Field': float(a), 'Y-Field': float(b), 'Weight': float(c), 'VDX': float(d),
-                 'VDY': float(e), 'VCX': float(f), 'VCY': float(g), 'VAN': float(k)} for a, b, c, d, e, f, g, k
-                in zip(self.xfln, self.yfln, self.fwgn, self.vdxn, self.vdyn, self.vcxn, self.vcyn, self.vann)]
+    def fields(self) -> Tuple[Tuple[Tuple[str, float], ...], ...]:
+        return tuple((('X-Field', float(a)),
+                      ('Y-Field', float(b)),
+                      ('Weight', float(c)),
+                      ('VDX', float(d)),
+                      ('VDY', float(e)),
+                      ('VCX', float(f)),
+                      ('VCY', float(g)),
+                      ('VAN', float(k))) for a, b, c, d, e, f, g, k
+                      in zip(self.xfln, self.yfln, self.fwgn, self.vdxn, self.vdyn, self.vcxn, self.vcyn, self.vann))
 
     @property
-    def fields_info(self) -> Dict[str, Any]:
-        return {'Type': ZFields._FIELD_TYPES[self.ftyp[0]] if self.ftyp[0] in ZFields._FIELD_TYPES else "UNDEF",
-                'Field Normalization': 'Rectangular' if self.ftyp[4] == 1 else 'Radial',
-                'Number Of Fields': self.ftyp[2]}
+    def fields_info(self) -> Tuple[Tuple[Tuple[str, Any], ...], ...]:
+        return ((('Type', ZFields._FIELD_TYPES[self.ftyp[0]] if self.ftyp[0] in ZFields._FIELD_TYPES else "UNDEF"),
+                ('Normalization', 'Rectangular' if self.ftyp[4] == 1 else 'Radial'),
+                ('Number Of Fields', self.ftyp[2])), )
 
     @property
     def n_fields(self) -> int:

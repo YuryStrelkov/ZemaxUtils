@@ -122,7 +122,7 @@ class UITaskFileViewsList(QWidget):
         self._scheme_view  = UITaskFileView()
         self._scheme_params: Union[List[SchemeParams], None] = None
         self._active_scheme = -1
-        self._active_button = None  # Union[QPushButton, ]
+        self._active_button = None
         self._active_button_style = None
         layout = QHBoxLayout()
         layout.addWidget(self._schemes_list)
