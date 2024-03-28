@@ -113,14 +113,18 @@ class Report:
             font.name = font_name
             font.size = Pt(font_size)
             cell.paragraphs[0].alignment = alignment
-
-        for record_index, record in enumerate(data):
-            row, col = divmod(record_index, len(headers))
-            cell = table.rows[row + 1].cells[col]
-            cell.text = format_provider(record)
-            font = cell.paragraphs[0].runs[0].font
-            font.name = font_name
-            font.size = Pt(font_size)
+        row, col = 0, 0
+        try:
+            for record_index, record in enumerate(data):
+                row, col = divmod(record_index, len(headers))
+                # print(f'row: {row:>3} | col: {col:>3}')
+                cell = table.rows[row + 1].cells[col]
+                cell.text = format_provider(record)
+                font = cell.paragraphs[0].runs[0].font
+                font.name = font_name
+                font.size = Pt(font_size)
+        except IndexError as er:
+            print(f'IndexError at :: row: {row:>3} | col: {col:>3}\n {er.args}' )
         self._docx.add_page_break()
 
     def save(self, file_path: str):
@@ -131,23 +135,26 @@ class Report:
                            alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
         self.add_table(description='Основные параметры исследуемой схемы',
                        headers=('Параметр схемы', 'Значение'),
-                       data=("количество элементов", file.entries_count,
-                             "апертура, [мм]", file.aperture_value,
-                             "температура окр. среды (С)", file.temp_c,
-                             "давление окр. среды (MPa)", file.pressure_atm,
-                             "эффективное фокусное расстояние, [мм]", file.efl,
-                             "входной диаметр зрачка, [мм]", file.entrance_pupil_dia,
-                             "входное положение зрачка, [мм]", file.entrance_pupil_pos,
-                             "выходной диаметр зрачка, [мм]", file.exit_pupil_dia,
-                             "выходное положение зрачка, [мм]", file.exit_pupil_pos,
-                             "параксиальная высота изображения, [мм]", file.parax_image_height,
-                             "параксиальное увеличение", file.parax_magnification,
-                             "угловое увеличение", file.angular_magnification,
-                             "полный опт. путь, [мм]", file.total_track,
-                             "сдвиг зрачка по x, [мм]", file.x_pupil_shift,
-                             "сдвиг зрачка по y, [мм]", file.y_pupil_shift,
-                             "сдвиг зрачка по z, [мм]", file.z_pupil_shift,
-                             "номер STOP поверхности", file.stop_surface_number))
+                       data=("количество элементов",                      str(file.entries_count),
+                             "апертура, [мм]",                            str(file.aperture_value),
+                             "температура окр. среды (С)",                str(file.temp_c),
+                             "давление окр. среды (MPa)",                 str(file.pressure_atm),
+                             "эффективное фокусное расстояние, [мм]",     str(file.efl),
+                             "входной диаметр зрачка, [мм]",              str(file.entrance_pupil_dia),
+                             "входное положение зрачка, [мм]",            str(file.entrance_pupil_pos),
+                             "выходной диаметр зрачка, [мм]",             str(file.exit_pupil_dia),
+                             "выходное положение зрачка, [мм]",           str(file.exit_pupil_pos),
+                             "параксиальная высота изображения, [мм]",    str(file.parax_image_height),
+                             "параксиальное увеличение",                  str(file.parax_magnification),
+                             "угловое увеличение",                        str(file.angular_magnification),
+                             "полный опт. путь, [мм]",                    str(file.total_track),
+                             "сдвиг зрачка по x, [мм]",                   str(file.x_pupil_shift),
+                             "сдвиг зрачка по y, [мм]",                   str(file.y_pupil_shift),
+                             "сдвиг зрачка по z, [мм]",                   str(file.z_pupil_shift),
+                             "номер STOP поверхности",                    str(file.stop_surface_number),
+                             "Интегральный коэффициент пропускания, [%]", str(70.0),
+                             'Коэффициент виньетирования, [%]',           str(30.6),
+                             'Коэффициент экранирования, [%]',            str(32.2)))
 
         self.add_paragraph(f"\n\tСписок параметров полей схемы представлен в таблице {self._tables_count + 1}.",
                            alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
@@ -528,7 +535,12 @@ class Report:
         y_cords = file.x_image_pos_per_angle_from_psf
         for wave_id, psf_cords in enumerate(x_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
-            data.extend([f'{v:.3f}' for v in poly_regression(psf_cords, angles_x, 6).flat])
+            if psf_cords.size != 0:
+                length = min(psf_cords.size, angles_x.size)
+                data.extend([f'{v:.3f}' for v in poly_regression(psf_cords[0:length], angles_x[0:length], 6).flat])
+            else:
+                data.extend([f'NAN' for _ in range(6)])
+
         self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '
@@ -537,7 +549,11 @@ class Report:
         data.clear()
         for wave_id, psf_cords in enumerate(y_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
-            data.extend(list(map(lambda v: f'{v:.3f}', poly_regression(psf_cords, angles_y, 6).flat)))
+            if psf_cords.size != 0:
+                length = min(psf_cords.size, angles_x.size)
+                data.extend([f'{v:.3f}' for v in poly_regression(psf_cords[0:length], angles_x[0:length], 6).flat])
+            else:
+                data.extend([f'NAN' for _ in range(6)])
         self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '
@@ -596,7 +612,7 @@ class Report:
         if show_main_info:
             self._basic_params(file)
         self._mtf_diagrams(file)
-        self._vignetting_tables(file)
+        # self._vignetting_tables(file)
         self._spot_diagrams(file)
         # self._spot_center_positions_interp_images(file)
         self._spot_diagrams_tables(file)

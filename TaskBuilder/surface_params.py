@@ -15,6 +15,21 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
         return super().__new__(cls, surf_n, tilt, decenter, aperture,
                                curvature, even_asph, zernike)
 
+    def __iter__(self):
+        yield "surf_n", self.surf_n
+        yield ("tilt-x", self.tilt.x) if self.tilt else ("tilt-x", 0.0)
+        yield ("tilt-y", self.tilt.y) if self.tilt else ("tilt-y", 0.0)
+        yield ("decenter-x", self.decenter.x) if self.decenter else ("decenter-x", 0.0)
+        yield ("decenter-y", self.decenter.y) if self.decenter else ("decenter-y", 0.0)
+        yield ("aperture", self.aperture) if self.aperture else ("aperture", 0.0)
+        yield ("curvature", 1.0 / self.curvature) if self.curvature else ("curvature", 0.0)
+        if self.even_asph:
+            for index, value in enumerate(self.even_asph):
+                yield f"easph[{value}]", value
+        else:
+            for index in range(16):
+                yield f"easph[{index}]", 0.0
+
     def __str__(self):
         def formatter(_array):
             n = len(_array)
@@ -126,36 +141,23 @@ def read_surfaces(scheme_node) -> List[SurfaceParams]:
             raise RuntimeError("Incomplete surface definition :: surf_n does not present in surface")
         try:
             surf_n = int(node['surf_n'])
-
         except ValueError as _:
             print(f'surf_n = int(node[\"surf_n\"]) value error... ')
             continue
-
         except KeyError as _:
             print(f'surf_n = int(node[\"surf_n\"]) parse error... ')
             continue
-
         curvature = None
-
         aperture  = None
-
         tilt = None
-
         decenter = None
-
         zernike = None
-
         even_asph = None
-
         if 'curvature' in node:
             try:
                 curvature = float(node['curvature'])
             except ValueError as err:
                 print(f'curvature = int(node[\"curvature\"]) value error...')
-
-            except KeyError as err:
-                print(f'curvature = int(node[\"curvature\"]) parse error...')
-
         if 'tilt' in node:
             try:
                 _node = node['tilt']
@@ -163,46 +165,28 @@ def read_surfaces(scheme_node) -> List[SurfaceParams]:
             except ValueError as err:
                 _node = node['tilt']
                 print(f'tilt = Vector2(float(node[\"x\"]), float(node[\"y\"])) value error... ')
-
-            except KeyError as err:
-                print(f'tilt = Vector2(float(node[\"x\"]), float(node[\"y\"])) key error... ')
-
         if 'decenter' in node:
             try:
                 _node = node['decenter']
                 decenter = Vector2(float(_node['x']), float(_node['y']))
             except ValueError as err:
                 print(f'decenter = Vector2(float(node[\"x\"]), float(node[\"y\"])) value error...')
-
-            except KeyError as err:
-                print(f'decenter = Vector2(float(node[\"x\"]), float(node[\"y\"])) key error...')
-
         if 'aperture' in node:
             try:
                 aperture = float(node['aperture'])
             except ValueError as err:
                 print(f'aperture = float(node[\"aperture\"]) value error... ')
-
-            except KeyError as err:
-                print(f'aperture = float(node[\"aperture\"]) key error... ')
-
         if 'zernike' in node:
             try:
                 zernike = [float(v) for v in node['zernike']]
             except ValueError as err:
                 print(f'zernike = [float(v) for v in node[\"poly\"]] value error... ')
 
-            except KeyError as err:
-                print(f'zernike = [float(v) for v in node[\"poly\"]] key error... ')
-
         if 'even_asph' in node:
             try:
                 even_asph = [float(v) for v in node['even_asph']]
             except ValueError as err:
                 print(f'poly = [float(v) for v in node[\"poly\"]] value error... ')
-
-            except KeyError as err:
-                print(f'poly = [float(v) for v in node[\"poly\"]] key error... ')
 
         scheme.append(SurfaceParams(surf_n, tilt, decenter, aperture, curvature, even_asph, zernike))
     return scheme

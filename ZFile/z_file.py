@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple, Any
 import os.path
 import os
 from TaskBuilder import SchemeParams
@@ -17,6 +17,7 @@ COMMON_SCHEME_INFO = 1
 SCHEME_SPOT_DIAGRAM = 2
 SCHEME_MTF = 4
 SCHEME_PSF = 8
+SCHEME_ALL_CALCULATIONS = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF
 
 
 class ZFile:
@@ -29,6 +30,14 @@ class ZFile:
         self._fields: Union[ZFields, None] = None
         self._waves: Union[ZWaves, None] = None
         self.load(file_path)
+
+    @property
+    def surfaces(self) -> Dict[int, ZSurface]:
+        return self._surfaces
+
+    @property
+    def surfaces_params(self) -> Tuple[Tuple[Tuple[str, Any], ...], ...]:
+        return tuple(tuple(param for param in surface) for surface in self.surfaces.values())
 
     @property
     def waves(self) -> ZWaves:
@@ -74,6 +83,14 @@ class ZFile:
     def contains_surf(self, surf_id: int) -> bool:
         assert isinstance(surf_id, int)
         return surf_id in self._surfaces
+
+    @property
+    def common_params(self):
+        yield ('param', 'version'), ('value', ':'.join(str(int(v))for v in self.version.params) if self.version else '-')
+        yield ('param', 'mode'), ('value', self.mode.params[0] if self.mode else '-')
+        yield ('param', 'name'), ('value', self.name.params[0] if self.name else '-')
+        yield ('param', 'units'), ('value', self.units.params[0] if self.units else '-')
+        yield ('param', 'enter_pupil_diameter'), ('value', self.enter_pupil_diameter.params[0] if self.enter_pupil_diameter else '-')
 
     @property
     def version(self) -> Union[ZFileField, None]:
@@ -129,20 +146,20 @@ class ZFile:
         for surf in surfaces:
             surf_id = surf.surf_n
             if remap is not None:
-                surf_id = remap[surf_id] if surf_id in remap else -1
+                # TODO убрать surf_id + 1
+                surf_id = remap[surf_id + 1] if surf_id + 1 in remap else -1
             if not self.contains_surf(surf_id):
                 continue
-            surface = self._surfaces[surf_id]
+            surface: ZSurface = self._surfaces[surf_id]
             # if surf.decenter is not None:
-            #     self.set_surf_decenter_before(surf_id, surf.decenter)
+            #     surface.decenter_before = surf.decenter
             # if surf.tilt is not None:
-            #     self.set_surf_tilt_before    (surf_id, Vector3(surf.tilt.x, surf.tilt.y, 0.0))
-            if surf.aperture is not None:
-                surface.aperture = surf.aperture
-
+            #     surface.tilt_before = Vector3(surf.tilt.x, surf.tilt.y, 0.0)
+                # surf.set_surf_tilt_before    (surf_id, Vector3(surf.tilt.x, surf.tilt.y, 0.0))
+            # if surf.aperture is not None:
+            #     surface.aperture = surf.aperture
             # if surf.curvature is not None:
-            #     self.set_surf_curvature     (surf_id, self.get_surf_aperture(surf_id) + surf.curvature)
-
+            #     surface.curvature = surf.curvature
             if surf.zernike is None and surf.even_asph is None:
                 continue
             if surf.zernike is None:

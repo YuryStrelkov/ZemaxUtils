@@ -9,7 +9,7 @@ def _color_code(red: int, green: int, blue: int) -> str:
 
 def color_map_quad(map_amount: int = 3) -> List[str]:
     """
-    Генератор цветовой схемы
+    Генератор квадратичной цветовой схемы JET
     :param map_amount:
     :return:
     """
@@ -26,16 +26,24 @@ def color_map_quad(map_amount: int = 3) -> List[str]:
 
 
 def color_map_lin(map_amount: int = 3) -> List[str]:
-    colors = []
+    """
+    Генератор линейной цветовой схемы JET
+    :param map_amount:
+    :return:
+    """
+    # colors = []
     if map_amount < 2:
         return [_color_code(0, 0, 255)]
     dx = 1.0 / (map_amount - 1)
-    for i in range(map_amount):
-        xi = i * dx
-        colors.append(_color_code(int(255 * max(1.0 - 2.0 * xi, 0.0)),
-                                  int(255 * (1.0 - abs(2.0 * xi - 1.0))),
-                                  int(255 * max(2.0 * xi - 1, 0.0))))
-    return colors
+    return [_color_code(int(255 * max(1.0 - 2.0 * i * dx, 0.0)), int(255 * (1.0 - abs(2.0 * i * dx - 1.0))),
+                        int(255 * max(2.0 * i * dx - 1, 0.0))) for i in range(map_amount)]
+
+    # for i in range(map_amount):
+    #     xi = i * dx
+    #     colors.append(_color_code(int(255 * max(1.0 - 2.0 * xi, 0.0)),
+    #                               int(255 * (1.0 - abs(2.0 * xi - 1.0))),
+    #                               int(255 * max(2.0 * xi - 1, 0.0))))
+    # return colors
 
 
 def get_encoding(file_name):
