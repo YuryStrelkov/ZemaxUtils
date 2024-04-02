@@ -24,4 +24,5 @@ from .mutils import linear_regression, bi_linear_regression, n_linear_regression
 from .mutils import second_order_surface, quadratic_shape_fit
 from .mutils import poly_regression, quadratic_regression_2d
 from .mutils import poly_fit, polynom, quadratic_shape_fit
-from .raytracing import draw_scheme_2d, trace_ray_2d, trace_ray
+from .raytracing import draw_scheme_2d, trace_ray_2d, trace_ray, send_trace_log_2d, send_draw_log_2d,\
+    send_io_log_2d, trace_log_2d, draw_log_2d, io_log_2d

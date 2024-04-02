@@ -5,13 +5,46 @@ from . import Vector3
 from . import Transform2d
 from . import Transform3d
 import math
-
+from datetime import datetime
 
 """
 #######################################################################################################################
 #################################                   RAY TRACING 2 D                   #################################
 #######################################################################################################################
 """
+
+# logging info
+_log_info_2d = {'io-log': [], 'trace-log': [], 'draw-log': []}
+
+
+def _log_2d_generator(key: str):
+    messages = _log_info_2d[key]
+    while len(messages) != 0:
+        yield messages.pop()
+
+
+def io_log_2d():
+    return _log_2d_generator('io-log')
+
+
+def trace_log_2d():
+    return _log_2d_generator('trace-log')
+
+
+def draw_log_2d():
+    return _log_2d_generator('draw-log')
+
+
+def send_io_log_2d(message: str):
+    _log_info_2d['io-log'].append(f"message - time  : {datetime.now().strftime('%H:%M:%S:%f')}\n{message}")
+
+
+def send_trace_log_2d(message: str):
+    _log_info_2d['trace-log'].append(f"message - time  : {datetime.now().strftime('%H:%M:%S:%f')}\n{message}")
+
+
+def send_draw_log_2d(message: str):
+    _log_info_2d['draw-log'].append(f"message - time  : {datetime.now().strftime('%H:%M:%S:%f')}\n{message}")
 
 
 def intersect_sphere_2d(direction: Vector2, origin: Vector2, radius: float) -> float:
@@ -152,7 +185,7 @@ def trace_ray_2d(rd: Vector2, ro: Vector2,  # начало и направлен
     """
     points = [ro]
     directions = [rd]
-    for s_r, s_t, s_p in zip(surfaces_r, surfaces_t, surfaces_p):
+    for surface_index, (s_r, s_t, s_p) in enumerate(zip(surfaces_r, surfaces_t, surfaces_p)):
         if 'material' not in s_p:
             continue
         if s_p['material'] == "mirror":
@@ -171,7 +204,16 @@ def trace_ray_2d(rd: Vector2, ro: Vector2,  # начало и направлен
             if 'glass-params' not in s_p:
                 continue
             ri1, ri2 = s_p['glass-params']
-            t, _re, _rd = refract_2d(directions[-1], points[-1], s_r, ri1, ri2, s_t)
+            try:
+                t, _re, _rd = refract_2d(directions[-1], points[-1], s_r, ri1, ri2, s_t)
+            except ValueError as error:
+                send_trace_log_2d(f"|\ttrace-error: error occurs at surface №{surface_index}, surface will be ignored.\n"
+                                  f"|\terror-info : {error}")
+                continue
+            except ZeroDivisionError as error:
+                send_trace_log_2d(f"|\ttrace-error: error occurs at surface №{surface_index}, surface will be ignored.\n"
+                                  f"|\terror-info : {error}")
+                continue
             if t < 0:
                 break
             points.append(_re)
@@ -221,6 +263,7 @@ def draw_scheme_2d(surfaces_r: Iterable[float],  # список поверхно
             x, y = lens_shape_2d(r1, r2, a1, a2, t1, t2)
             axis.plot(x, y, 'b')
         except StopIteration:
+            send_draw_log_2d(f"\tdraw-info   : file: drawing successfully done...\n")
             break
     axis.set_aspect('equal', 'box')
     axis.set_xlabel("z, [mm]")

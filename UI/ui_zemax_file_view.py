@@ -5,6 +5,7 @@ from UI.ui_collapsible_box import CollapsibleBox
 from UI.ui_table import UITableWidget
 from ZFile import ZFile
 import matplotlib as plt
+
 plt.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -25,16 +26,16 @@ class UIZemaxFileView(QScrollArea):
         content.layout().setAlignment(Qt.AlignTop)
         self.setWidget(content)
         self.setWidgetResizable(True)
-        self._scheme_preview     = QWidget()  # CollapsibleBox(title="SCHEME PREVIEW")
+        self._scheme_preview = QWidget()  # CollapsibleBox(title="SCHEME PREVIEW")
         self._scheme_preview.setLayout(QVBoxLayout())  # CollapsibleBox(title="SCHEME PREVIEW")
         self._scheme_preview.setFixedHeight(800)
         # self._scheme_preview = CollapsibleBox(title="SCHEME PREVIEW")
         self._scheme_common_info = CollapsibleBox(title="SCHEME COMMON")
         # self._scheme_surfs_remap = CollapsibleBox(title="SURFACES REMAP")
-        self._scheme_fields      = CollapsibleBox(title="SCHEME FIELDS")
-        self._scheme_waves       = CollapsibleBox(title="SCHEME WAVES")
-        self._scheme_surfaces    = CollapsibleBox(title="SCHEME SURFACES")
-        self._scheme_extra_data  = CollapsibleBox(title="SCHEME EXTRA DATA")
+        self._scheme_fields = CollapsibleBox(title="SCHEME FIELDS")
+        self._scheme_waves = CollapsibleBox(title="SCHEME WAVES")
+        self._scheme_surfaces = CollapsibleBox(title="SCHEME SURFACES")
+        self._scheme_extra_data = CollapsibleBox(title="SCHEME EXTRA DATA")
         content.layout().addWidget(self._scheme_preview)
         content.layout().addWidget(self._scheme_common_info)
         content.layout().addWidget(self._scheme_fields)
