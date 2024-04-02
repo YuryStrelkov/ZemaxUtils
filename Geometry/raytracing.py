@@ -63,13 +63,11 @@ def intersect_sphere_2d(direction: Vector2, origin: Vector2, radius: float) -> f
 
 
 def intersect_flat_surface_2d(direction: Vector2, origin: Vector2, normal: Vector2) -> float:
-    # position: Vector3 = {0, 0, 0}
     rn = Vector2.dot(origin, normal)
     return rn * (1.0 / Vector2.dot(direction, normal))
 
 
 def _trace_surface_2d(direction: Vector2, origin: Vector2, radius: float) -> Tuple[float, Vector2, Vector2]:
-    # position: Vector3 = {0, 0, 0}
     if abs(radius) <= NUMERICAL_ACCURACY:
         normal = Vector2(0, 1 if radius >= 0 else -1.0)
         t = intersect_flat_surface_2d(direction, origin, normal)
