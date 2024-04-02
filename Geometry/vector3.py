@@ -3,17 +3,15 @@ from dataclasses import dataclass
 import numpy as np
 import math
 
-_X = '_x'
-_Y = '_y'
-_Z = '_z'
 
-
-@dataclass
+@dataclass(slots=True)
 class Vector3:
     """
-    mutable vector 4d
+    mutable vector 3d
     """
-    __slots__ = ('_x', '_y', '_z')
+    _x: float
+    _y: float
+    _z: float
 
     @property
     def x(self) -> float:
@@ -50,21 +48,21 @@ class Vector3:
         yield self._y
         yield self._z
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, Vector3):
             return False
         return not any(v1 != v2 for v1, v2 in zip(self, other))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{{\"x\": {self.x:{_4F}}, \"y\": {self.y:{_4F}}, \"z\": {self.z:{_4F}}}}"
 
-    def __neg__(self):
+    def __neg__(self) -> 'Vector3':
         return Vector3(-self.x, -self.y, -self.z)
 
-    def __abs__(self):
+    def __abs__(self) -> 'Vector3':
         return Vector3(abs(self.x), abs(self.y), abs(self.z))
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
         if isinstance(other, int) or isinstance(other, float):
@@ -73,7 +71,7 @@ class Vector3:
 
     __radd__ = __add__
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             self.x += other.x
             self.y += other.y
@@ -86,21 +84,21 @@ class Vector3:
             return self
         raise RuntimeError(f"Vector3::IAdd::wrong argument type {type(other)}")
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
         if isinstance(other, int) or isinstance(other, float):
             return Vector3(self.x - other, self.y - other, self.z - other)
         raise RuntimeError(f"Vector3::Sub::wrong argument type {type(other)}")
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             return Vector3(other.x - self.x, other.y - self.y, other.z - self.z)
         if isinstance(other, int) or isinstance(other, float):
             return Vector3(other - self.x, other - self.y, other - self.z)
         raise RuntimeError(f"Vector3::RSub::wrong argument type {type(other)}")
 
-    def __isub__(self, other):
+    def __isub__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             self.x -= other.x
             self.y -= other.y
@@ -113,7 +111,7 @@ class Vector3:
             return self
         raise RuntimeError(f"Vector3::ISub::wrong argument type {type(other)}")
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             return Vector3(other.x * self.x, other.y * self.y, other.z * self.z)
         if isinstance(other, int) or isinstance(other, float):
@@ -122,7 +120,7 @@ class Vector3:
 
     __rmul__ = __mul__
 
-    def __imul__(self, other):
+    def __imul__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             self.x *= other.x
             self.y *= other.y
@@ -135,21 +133,21 @@ class Vector3:
             return self
         raise RuntimeError(f"Vector3::IMul::wrong argument type {type(other)}")
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             return Vector3(self.x / other.x, self.y / other.y, self.z / other.z)
         if isinstance(other, int) or isinstance(other, float):
             return Vector3(self.x / other, self.y / other, self.z / other)
         raise RuntimeError(f"Vector3::Div::wrong argument type {type(other)}")
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             return Vector3(other.x / self.x, other.y / self.y, other.z / self.z)
         if isinstance(other, int) or isinstance(other, float):
             return Vector3(other / self.x, other / self.y, other / self.z)
         raise RuntimeError(f"Vector3::RDiv::wrong argument type {type(other)}")
 
-    def __idiv__(self, other):
+    def __idiv__(self, other) -> 'Vector3':
         if isinstance(other, Vector3):
             self.x /= other.x
             self.y /= other.y
@@ -173,13 +171,13 @@ class Vector3:
         return math.sqrt(self.magnitude_sqr)
 
     @property
-    def normalized(self):
+    def normalized(self) -> 'Vector3':
         try:
             return self / self.magnitude
         except ZeroDivisionError as _:
             return Vector3()
 
-    def normalize(self):
+    def normalize(self) -> 'Vector3':
         try:
             return self.__imul__(1.0 / self.magnitude)
         except ZeroDivisionError as _:
@@ -192,33 +190,44 @@ class Vector3:
         return sum(ai * bi for ai, bi in zip(a, b))
 
     @classmethod
-    def cross(cls, a, b):
+    def cross(cls, a, b) -> 'Vector3':
         assert isinstance(a, Vector3)
         assert isinstance(b, Vector3)
         return cls(a.z * b.y - a.y * b.z, a.x * b.z - a.z * b.x, a.y * b.x - a.x * b.y)
 
     @classmethod
-    def max(cls, a, b):
+    def max(cls, a, b) -> 'Vector3':
         assert isinstance(a, Vector3)
         assert isinstance(b, Vector3)
         return cls(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))
 
     @classmethod
-    def min(cls, a, b):
+    def min(cls, a, b) -> 'Vector3':
         assert isinstance(a, Vector3)
         assert isinstance(b, Vector3)
         return cls(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z))
 
     @property
-    def zxy(self):
+    def zxy(self) -> 'Vector3':
         return Vector3(self.z, self.x, self.y)
 
     @property
-    def zyx(self):
+    def zyx(self) -> 'Vector3':
         return Vector3(self.z, self.y, self.x)
 
     @classmethod
-    def from_np_array(cls, array: np.ndarray):
+    def reflect(cls, direction: 'Vector3', normal: 'Vector3'):
+        return cls(*(direction - 2.0 * Vector3.dot(direction, normal) * normal).normalized)
+
+    @classmethod
+    def refract(cls, direction: 'Vector3', normal: 'Vector3', ri1: float, ri2: float):
+        re = direction * ri1
+        dn = Vector3.dot(re, normal)
+        ratio = (math.sqrt((ri2 * ri2 - ri1 * ri1) / (dn * dn) + 1.0) - 1.0) * dn
+        return cls(*(re + ratio * normal).normalized)
+
+    @classmethod
+    def from_np_array(cls, array: np.ndarray) -> 'Vector3':
         assert isinstance(array, np.ndarray)
         assert array.size == 3
         return cls(*array.flat)

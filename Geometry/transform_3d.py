@@ -17,7 +17,7 @@ class Transform3d:
 
     __slots__ = ("_raw_i_t_m", "_t_m", "_i_t_m", "_angles")
 
-    def __init__(self):
+    def __init__(self, pos: Vector3 = None, scale: Vector3 = None, angles: Vector3 = None):
         self._raw_i_t_m: bool = False
         self._angles: Vector3 = Vector3(0.0, 0.0, 0.0)
         self._t_m = Matrix4(1.0, 0.0, 0.0, 0.0,
@@ -28,6 +28,12 @@ class Transform3d:
                               0.0, 1.0, 0.0, 0.0,
                               0.0, 0.0, 1.0, 0.0,
                               0.0, 0.0, 0.0, 1.0)
+        if pos:
+            self.origin = pos
+        if scale:
+            self.scale = scale
+        if angles:
+            self.angles = angles
 
     def _build_i_t_m(self) -> None:
         self._raw_i_t_m = True
@@ -218,7 +224,7 @@ class Transform3d:
         return Vector3(self.sx, self.sy, self.sz)
 
     @scale.setter
-    def scale(self, xyz: Vector3):
+    def scale(self, xyz: Vector3) -> None:
         assert isinstance(xyz, Vector3)
         scl = xyz / self.scale
         self._t_m.m00 *= scl.z

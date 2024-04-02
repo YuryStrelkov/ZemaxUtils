@@ -9,3 +9,4 @@ from .qt_widgets_utils import init_mat_2
 from .qt_widgets_utils import init_mat_3
 from .qt_widgets_utils import init_mat_4
 from .image_widget import ImageWidget
+from .z_draw import render_scheme_preview
