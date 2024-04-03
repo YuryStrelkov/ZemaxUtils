@@ -8,7 +8,7 @@ class Transform2d:
 
     __slots__ = ("_raw_i_t_m", "_t_m", "_i_t_m")
 
-    def __init__(self):
+    def __init__(self, pos: Vector2 = None, scale: Vector2 = None, angle: float = None):
         self._raw_i_t_m: bool = False
         self._t_m = Matrix3(1.0, 0.0, 0.0,
                             0.0, 1.0, 0.0,
@@ -16,6 +16,12 @@ class Transform2d:
         self._i_t_m = Matrix3(1.0, 0.0, 0.0,
                               0.0, 1.0, 0.0,
                               0.0, 0.0, 1.0)
+        if pos:
+            self.origin = pos
+        if scale:
+            self.scale = scale
+        if angle:
+            self.az = angle
 
     def _build_i_t_m(self) -> None:
         self._raw_i_t_m = True
@@ -53,7 +59,7 @@ class Transform2d:
             self._raw_i_t_m = False
             s = self.scale
             s = 1.0 / s
-            r = Vector2(self._t_m.m00 * s.x, self._t_m.m10 * s.x, )
+            r = Vector2(self._t_m.m00 * s.x, self._t_m.m10 * s.x)
             u = Vector2(self._t_m.m01 * s.y, self._t_m.m11 * s.y)
             o = self.origin
             self._i_t_m = Matrix3(r.x * s.x, r.y * s.x, -Vector2.dot(o, r) * s.x,

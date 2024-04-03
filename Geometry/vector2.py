@@ -4,16 +4,13 @@ import numpy as np
 import math
 
 
-_X = '_x'
-_Y = '_y'
-
-
-@dataclass
+@dataclass(slots=True)
 class Vector2:
     """
-    mutable vector 4d
+    mutable vector 2d
     """
-    __slots__ = ('_x', '_y')
+    _x: float
+    _y: float
 
     @property
     def x(self) -> float:
@@ -40,28 +37,28 @@ class Vector2:
         yield self._x
         yield self._y
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, Vector2):
             return False
         return not any(v1 != v2 for v1, v2 in zip(self, other))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{{\"x\": {self.x:{_4F}}, \"y\": {self.y:{_4F}}}}"
 
-    def __neg__(self):
+    def __neg__(self) -> 'Vector2':
         return Vector2(-self.x, -self.y)
 
-    def __abs__(self):
+    def __abs__(self) -> 'Vector2':
         return Vector2(abs(self.x), abs(self.y))
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             return Vector2(self.x + other.x, self.y + other.y)
         if isinstance(other, int) or isinstance(other, float):
             return Vector2(self.x + other, self.y + other)
         raise RuntimeError(f"Vector2::Add::wrong argument type {type(other)}")
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             self.x += other.x
             self.y += other.y
@@ -74,14 +71,14 @@ class Vector2:
 
     __radd__ = __add__
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             return Vector2(self.x - other.x, self.y - other.y)
         if isinstance(other, int) or isinstance(other, float):
             return Vector2(self.x - other, self.y - other)
         raise RuntimeError(f"Vector2::Sub::wrong argument type {type(other)}")
 
-    def __isub__(self, other):
+    def __isub__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             self.x -= other.x
             self.y -= other.y
@@ -92,21 +89,21 @@ class Vector2:
             return self
         raise RuntimeError(f"Vector2::ISub::wrong argument type {type(other)}")
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             return Vector2(other.x - self.x, other.y - self.y)
         if isinstance(other, int) or isinstance(other, float):
             return Vector2(other - self.x, other - self.y)
         raise RuntimeError(f"Vector2::RSub::wrong argument type {type(other)}")
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             return Vector2(other.x * self.x, other.y * self.y)
         if isinstance(other, int) or isinstance(other, float):
             return Vector2(other * self.x, other * self.y)
         raise RuntimeError(f"Vector3::Mul::wrong argument type {type(other)}")
 
-    def __imul__(self, other):
+    def __imul__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             self.x *= other.x
             self.y *= other.y
@@ -119,14 +116,14 @@ class Vector2:
 
     __rmul__ = __mul__
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             return Vector2(self.x / other.x, self.y / other.y)
         if isinstance(other, int) or isinstance(other, float):
             return Vector2(self.x / other, self.y / other)
         raise RuntimeError(f"Vector2::Div::wrong argument type {type(other)}")
 
-    def __idiv__(self, other):
+    def __idiv__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             self.x /= other.x
             self.y /= other.y
@@ -137,7 +134,7 @@ class Vector2:
             return self
         raise RuntimeError(f"Vector2::IDiv::wrong argument type {type(other)}")
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> 'Vector2':
         if isinstance(other, Vector2):
             return Vector2(other.x / self.x, other.y / self.y)
         if isinstance(other, int) or isinstance(other, float):
@@ -155,13 +152,13 @@ class Vector2:
         return math.sqrt(self.magnitude_sqr)
 
     @property
-    def normalized(self):
+    def normalized(self) -> 'Vector2':
         try:
             return self / self.magnitude
         except ZeroDivisionError as _:
-            return Vector2()
+            return Vector2(0, 0)
 
-    def normalize(self):
+    def normalize(self) -> 'Vector2':
         try:
             return Vector2.__imul__(self, 1.0 / self.magnitude)
         except ZeroDivisionError as _:
@@ -180,36 +177,36 @@ class Vector2:
         return a.x * b.y - a.y * b.x
 
     @classmethod
-    def max(cls, a, b):
+    def max(cls, a, b) -> 'Vector2':
         assert isinstance(a, Vector2)
         assert isinstance(b, Vector2)
         return cls(max(a.x, b.x), max(a.y, b.y))
 
     @classmethod
-    def min(cls, a, b):
+    def min(cls, a, b) -> 'Vector2':
         assert isinstance(a, Vector2)
         assert isinstance(b, Vector2)
         return cls(min(a.x, b.x), min(a.y, b.y))
 
     @classmethod
-    def normal(cls, v):
+    def normal(cls, v) -> 'Vector2':
         assert isinstance(v, Vector2)
         """
         :param v:
         :return: возвращает единичный вектор перпендикулярный заданному.
         """
-        if v.x == 0.0:
+        if abs(v.x) < NUMERICAL_ACCURACY:
             return cls(1.0 if v.y >= 0.0 else -1.0, 0.0)
-        if v.y == 0.0:
-            return cls(0, -1.0 if v.y >= 0.0 else 1.0)
+        if abs(v.y) < NUMERICAL_ACCURACY:
+            return cls(0, -1.0 if v.x >= 0.0 else 1.0)
         sign: float = 1.0 if v.x / v.y >= 0.0 else -1.0
-        dx: float = 1.0 / v.x
+        dx: float =  1.0 / v.x
         dy: float = -1.0 / v.y
         sign /= math.sqrt(dx * dx + dy * dy)
         return cls(dx * sign, dy * sign)
 
     @staticmethod
-    def overlay(a1, a2, b1, b2):
+    def overlay(a1, a2, b1, b2) -> bool:
         assert all(isinstance(v, Vector2) for v in (a1, a2, b1, b2))
         da_db = abs(a2 - a1) + abs(b2 - b1)
         dc = abs((a1 + a2) - (b2 + b1))
@@ -220,7 +217,7 @@ class Vector2:
         return True
 
     @classmethod
-    def intersect_lines(cls, pt1, pt2, pt3, pt4):
+    def intersect_lines(cls, pt1, pt2, pt3, pt4) -> 'Vector2':
         """
         Определяет точку пересечения двух линий, проходящих через точки pt1, pt2 и pt3, pt4 для первой и второй\n
         соответственно.\n
@@ -230,14 +227,14 @@ class Vector2:
         :param pt4: вектор - пара (x, y), вторая точка второй линии.
         :return: переселись или нет, вектор - пара (x, y).
         """
-        assert all(isinstance(v, Vector2) for v in ( pt1, pt2, pt3, pt4))
+        assert all(isinstance(v, Vector2) for v in (pt1, pt2, pt3, pt4))
         da = cls(pt2.x - pt1.x, pt2.y - pt1.y)
         db = cls(pt4.x - pt3.x, pt4.y - pt3.y)
         det = Vector2.cross(da, db)
         if abs(det) < NUMERICAL_ACCURACY:
             # if Vector2.overlay(pt1, pt2, pt3, pt4):
             #     return sum((pt1, pt2, pt3, pt4)) * 0.25
-            return None
+            return Vector2(0, 0)
         det = 1.0 / det
         x = Vector2.cross(pt1, da)
         y = Vector2.cross(pt3, db)
@@ -245,16 +242,18 @@ class Vector2:
 
     @classmethod
     def reflect(cls, direction: 'Vector2', normal: 'Vector2'):
-        return cls(*(direction - 2.0 * Vector2.dot(direction, normal) * normal))
+        return cls(*(direction - 2.0 * Vector2.dot(direction, normal) * normal).normalized)
 
     @classmethod
     def refract(cls, direction: 'Vector2', normal: 'Vector2', ri1: float, ri2: float):
-        dn = ri1 * Vector2.dot(direction, normal)
-        ratio = (math.sqrt((ri2 * ri2 - ri1 * ri1) / (dn * dn) + 1) - 1) * dn
-        return cls(*(ri1 * direction + ratio * normal).normalized)
+        # return direction
+        re = direction * ri1
+        dn = Vector2.dot(re, normal)
+        ratio = (math.sqrt((ri2 * ri2 - ri1 * ri1) / (dn * dn) + 1.0) - 1.0) * dn
+        return cls(*(re + ratio * normal).normalized)
 
     @classmethod
-    def from_np_array(cls, array: np.ndarray):
+    def from_np_array(cls, array: np.ndarray) -> 'Vector2':
         assert isinstance(array, np.ndarray)
         assert array.size == 2
         return cls(*array.flat)

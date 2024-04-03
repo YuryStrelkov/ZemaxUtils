@@ -1,10 +1,21 @@
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QApplication, QPushButton
 from PyQt5.QtCore import Qt
-from TaskBuilder import SchemeParams, SurfaceParams
+from UI import render_scheme_preview
 from UI.ui_collapsible_box import CollapsibleBox
 from UI.ui_table import UITableWidget
 from ZFile import ZFile
-from typing import List, Union
+import matplotlib as plt
+
+plt.use('Qt5Agg')
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+
+
+class MplCanvas(FigureCanvasQTAgg):
+    def __init__(self, width=5, height=8, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        super(MplCanvas, self).__init__(self.fig)
 
 
 class UIZemaxFileView(QScrollArea):
@@ -15,21 +26,25 @@ class UIZemaxFileView(QScrollArea):
         content.layout().setAlignment(Qt.AlignTop)
         self.setWidget(content)
         self.setWidgetResizable(True)
+        self._scheme_preview = QWidget()  # CollapsibleBox(title="SCHEME PREVIEW")
+        self._scheme_preview.setLayout(QVBoxLayout())  # CollapsibleBox(title="SCHEME PREVIEW")
+        self._scheme_preview.setFixedHeight(800)
+        # self._scheme_preview = CollapsibleBox(title="SCHEME PREVIEW")
         self._scheme_common_info = CollapsibleBox(title="SCHEME COMMON")
         # self._scheme_surfs_remap = CollapsibleBox(title="SURFACES REMAP")
-        self._scheme_fields      = CollapsibleBox(title="SCHEME FIELDS")
-        self._scheme_waves       = CollapsibleBox(title="SCHEME WAVES")
-        self._scheme_surfaces    = CollapsibleBox(title="SCHEME SURFACES")
-        self._scheme_extra_data  = CollapsibleBox(title="SCHEME EXTRA DATA")
+        self._scheme_fields = CollapsibleBox(title="SCHEME FIELDS")
+        self._scheme_waves = CollapsibleBox(title="SCHEME WAVES")
+        self._scheme_surfaces = CollapsibleBox(title="SCHEME SURFACES")
+        self._scheme_extra_data = CollapsibleBox(title="SCHEME EXTRA DATA")
+        content.layout().addWidget(self._scheme_preview)
         content.layout().addWidget(self._scheme_common_info)
-        # content.layout().addWidget(self._scheme_surfs_remap)
         content.layout().addWidget(self._scheme_fields)
         content.layout().addWidget(self._scheme_waves)
         content.layout().addWidget(self._scheme_surfaces)
         content.layout().addWidget(self._scheme_extra_data)
-        content.layout().addStretch()
 
     def setup(self, content: ZFile):
+        self.set_scheme_preview(content)
         self.set_scheme_fields(content)
         self.set_scheme_waves(content)
         self.set_scheme_surfaces(content)
@@ -44,22 +59,25 @@ class UIZemaxFileView(QScrollArea):
         info_layout.addWidget(info_label)
         return info_layout
 
-    # def set_scheme_surfs_remap(self, scheme: SchemeParams) -> 'UIZemaxFileView':
-    #     if not scheme.surf_remap:
-    #         self._scheme_surfs_remap.set_content_layout(UIZemaxFileView._info_label("No surfaces remap info..."))
-    #         return self
-    #     layout = QVBoxLayout()
-    #     data = tuple((("scheme index", k), ("Zemax index", v)) for k, v in scheme.surf_remap.items())
-    #     layout.addWidget(UITableWidget.make_table_from_iterable(data))
-    #     self._scheme_surfs_remap.set_content_layout(layout)
-    #     return self
-
     def set_scheme_waves(self, scheme: ZFile) -> 'UIZemaxFileView':
         layout = QVBoxLayout()
         waves = tuple((('wave length', wl), ('weight', ww)) for wl, ww in
                       zip(scheme.waves.wavelengths, scheme.waves.weights))
         layout.addWidget(UITableWidget.make_table_from_iterable(waves))
         self._scheme_waves.set_content_layout(layout)
+        return self
+
+    def set_scheme_preview(self, scheme: ZFile) -> 'UIZemaxFileView':
+        if not scheme.fields:
+            # self._scheme_preview.set_content_layout(UIZemaxFileView._info_label("No preview data..."))
+            self._scheme_preview.layout().addWidget(UIZemaxFileView._info_label("No preview data..."))
+            return self
+        sc = MplCanvas()
+        toolbar = NavigationToolbar(sc)
+        render_scheme_preview(scheme, axis=sc.axes)
+        self._scheme_preview.layout().addWidget(toolbar)
+        self._scheme_preview.layout().addWidget(sc)
+        # sc.fig.tight_layout()
         return self
 
     def set_scheme_fields(self, scheme: ZFile) -> 'UIZemaxFileView':
