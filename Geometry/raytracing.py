@@ -63,13 +63,13 @@ def intersect_sphere_2d(direction: Vector2, origin: Vector2, radius: float) -> f
 
 
 def intersect_flat_surface_2d(direction: Vector2, origin: Vector2, normal: Vector2) -> float:
-    rn = Vector2.dot(origin, normal)
+    rn = Vector2.dot(origin, -normal)
     return rn * (1.0 / Vector2.dot(direction, normal))
 
 
 def _trace_surface_2d(direction: Vector2, origin: Vector2, radius: float) -> Tuple[float, Vector2, Vector2]:
     if abs(radius) <= NUMERICAL_ACCURACY:
-        normal = Vector2(0, 1 if radius >= 0 else -1.0)
+        normal = Vector2(0.0, 1.0 if radius >= 0 else -1.0)
         t = intersect_flat_surface_2d(direction, origin, normal)
         ray_end = direction * t + origin
         return t, ray_end, normal
@@ -133,9 +133,9 @@ def refract_2d(rd: Vector2, ro: Vector2, radius: float, ri1: float, ri2: float, 
 
 def build_shape_2d(radius: float, semi_diam: float,
                    transform: Transform2d = None, steps: int = 16) -> Tuple[List[float], List[float]]:
-    if abs(semi_diam) < NUMERICAL_ACCURACY:
+    if abs(semi_diam) <= NUMERICAL_ACCURACY:
         return [], []
-    if abs(radius) < NUMERICAL_ACCURACY:
+    if abs(radius) <= NUMERICAL_ACCURACY:
         xs, ys = [-semi_diam, semi_diam], [0, 0]
     else:
         da = 2 * semi_diam / (steps - 1)
@@ -216,7 +216,6 @@ def trace_ray_2d(rd: Vector2, ro: Vector2,  # начало и направлен
                 break
             points.append(_re)
             directions.append(_rd)
-
     return points, directions
 
 
@@ -229,7 +228,9 @@ def draw_scheme_2d(surfaces_r: Iterable[float],  # список поверхно
     iter_aperture_r = iter(aperture_r)
     iter_surfaces_t = iter(surfaces_t)
     iter_surfaces_p = iter(surfaces_p)
+    surf_index = -1
     while True:
+        surf_index += 1
         try:
             r1 = next(iter_surfaces_r)
             a1 = next(iter_aperture_r)
@@ -260,6 +261,10 @@ def draw_scheme_2d(surfaces_r: Iterable[float],  # список поверхно
             _ = next(iter_surfaces_p)
             x, y = lens_shape_2d(r1, r2, a1, a2, t1, t2)
             axis.plot(x, y, 'b')
+        except ValueError as error:
+            send_draw_log_2d(f"\tshape-error : error while building surface {surf_index}, surface will not be drawn...\n"
+                             f"\terror-info  : {error}")
+            continue
         except StopIteration:
             send_draw_log_2d(f"\tdraw-info   : file: drawing successfully done...\n")
             break
@@ -323,15 +328,13 @@ def intersect_sphere(direction: Vector3, origin: Vector3, radius: float) -> floa
 
 
 def intersect_flat_surface(direction: Vector3, origin: Vector3, normal: Vector3) -> float:
-    # position: Vector3 = {0, 0, 0}
-    rn = Vector3.dot(origin, normal)
+    rn = Vector3.dot(origin, -normal)
     return rn * (1.0 / Vector3.dot(direction, normal))
 
 
 def _trace_surface(direction: Vector3, origin: Vector3, radius: float) -> Tuple[float, Vector3, Vector3]:
-    # position: Vector3 = {0, 0, 0}
     if abs(radius) <= NUMERICAL_ACCURACY:
-        normal = Vector3(0, 0, 1 if radius >= 0 else -1.0)
+        normal = Vector3(0.0, 0.0, 1.0 if radius >= 0 else -1.0)
         t = intersect_flat_surface(direction, origin, normal)
         ray_end = direction * t + origin
         return t, ray_end, normal

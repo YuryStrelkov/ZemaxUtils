@@ -1,10 +1,10 @@
-from .common import NUMERICAL_FORMAT_4F as _4F, NUMERICAL_ACCURACY
+from .common import NUMERICAL_FORMAT_4F as _4F, NUMERICAL_ACCURACY, DATA_CLASS_INSTANCE_ARGS
 from dataclasses import dataclass
 import numpy as np
 import math
 
 
-@dataclass(slots=True)
+@dataclass(**DATA_CLASS_INSTANCE_ARGS)
 class Vector2:
     """
     mutable vector 2d

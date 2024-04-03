@@ -35,7 +35,11 @@ def convert_zemax_file_to_tracer_task(z_file: ZFile):
             try:
                 ri = float(s1.material.params[3])
                 ri = ri if abs(ri) > 1.0 else 1.0
-            except IndexError | ValueError as error:
+            except IndexError as error:
+                send_io_log_2d(f"\tparce-error : error while parsing surface material params, "
+                               f"default value of \"refraction index\" will be assigned\n"
+                               f"\terror-info : {error}")
+            except ValueError as error:
                 send_io_log_2d(f"\tparce-error : error while parsing surface material params, "
                                f"default value of \"refraction index\" will be assigned\n"
                                f"\terror-info : {error}")
@@ -64,9 +68,7 @@ def convert_zemax_file_to_tracer_task(z_file: ZFile):
 def render_scheme_preview(scheme, axis=None):
     axis = axis if axis else plt.gca()
     surfaces_r, aperture_a, surfaces_t, surfaces_p = convert_zemax_file_to_tracer_task(scheme)
-
     da = aperture_a[0] / 30 * 1.333
-
     for i in range(-15, 16):
         positions, directions = trace_ray_2d(Vector2(1, 0), Vector2(-2, i * da), surfaces_r, surfaces_t, surfaces_p)
         xs = [v.x for v in positions]

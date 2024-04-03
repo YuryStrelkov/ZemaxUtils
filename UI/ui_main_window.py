@@ -179,7 +179,7 @@ def load_style(style_src: str, application: QApplication) -> None:
 def run():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    load_style('../dark_theme_palette.json', app)
+    # load_style('../dark_theme_palette.json', app)
     window = UIMainWindow()
     sys.exit(app.exec())
 

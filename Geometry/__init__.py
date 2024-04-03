@@ -1,8 +1,9 @@
 """
 Base geometry primitives library
 """
-__version__ = '0.1.25'
+__version__ = '0.2.1'
 __license__ = "GNU Lesser General Public License v3"
+from .common import DATA_CLASS_INSTANCE_ARGS, assert_version, pyton_version
 from .common import NUMERICAL_MAX_VALUE, NUMERICAL_MIN_VALUE, PI, TWO_PI, HALF_PI
 from .common import NUMERICAL_ACCURACY, NUMERICAL_FORMAT_4F, NUMERICAL_FORMAT_8F
 from .common import DEG_TO_RAD, RAD_TO_DEG
