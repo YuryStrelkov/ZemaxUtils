@@ -100,7 +100,7 @@ def lens_shape(r1: float, r2: float, s_dia1: float, s_dia2: float, thickness: fl
     return xs, ys
 
 
-def create_z_surfaces(z_file):
+def create_z_surfaces(z_file, angle: float = 0.0):
     surfaces = iter(z_file.surfaces.values())
     z_distances = [z_file.get_dist_z(index) for index in z_file.surfaces.keys()]
     z_distances[0] = 0.0
@@ -119,7 +119,7 @@ def create_z_surfaces(z_file):
                 is_lens.append(0)
                 x, y = build_shape(1.0 / s1.curvature if abs(s1.curvature) > 1e-9 else 0.0,
                                    s1.aperture if not isinstance(s1.aperture, tuple) else s1.aperture[-1],
-                                   pos=Vector2(z1, 0), angle=math.pi * 0.5)
+                                   pos=Vector2(z1 * math.cos(angle),  z1 * math.sin(angle)), angle=angle)
                 surfaces_x.append(x)
                 surfaces_y.append(y)
                 continue
@@ -127,7 +127,7 @@ def create_z_surfaces(z_file):
                 is_lens.append(1)
                 x, y = build_shape(1.0 / s1.curvature if abs(s1.curvature) > 1e-9 else 0.0,
                                    s1.aperture if not isinstance(s1.aperture, tuple) else s1.aperture[-1],
-                                   pos=Vector2(z1, 0), angle=math.pi * 0.5)
+                                   pos=Vector2(z1 * math.cos(angle),  z1 * math.sin(angle)), angle=angle)
                 surfaces_x.append(x)
                 surfaces_y.append(y)
                 continue
@@ -138,7 +138,7 @@ def create_z_surfaces(z_file):
                               1.0 / s2.curvature if abs(s2.curvature) > 1e-9 else 0.0,
                               s1.aperture if not isinstance(s1.aperture, tuple) else s1.aperture[-1],
                               s2.aperture if not isinstance(s2.aperture, tuple) else s2.aperture[-1],
-                              z2 - z1, pos=Vector2(z1, 0), angle=math.pi * 0.5)
+                              z2 - z1, pos=Vector2(z1 * math.cos(angle),  z1 * math.sin(angle)), angle=angle)
             surfaces_x.append(x)
             surfaces_y.append(y)
         except StopIteration as stop:

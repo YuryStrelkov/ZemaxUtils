@@ -320,7 +320,7 @@ class ZSurface:
 
     @property
     def curvature(self):
-        return self._curvature.params[0]
+        return self._curvature.params[0]if abs(self._curvature.params[0]) > 1e-9 else 1e9
 
     @curvature.setter
     def curvature(self, value: float) -> None:
