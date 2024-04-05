@@ -71,8 +71,7 @@ def _trace_surface_2d(direction: Vector2, origin: Vector2, radius: float) -> Tup
     if abs(radius) <= NUMERICAL_ACCURACY:
         normal = Vector2(0.0, 1.0 if radius >= 0 else -1.0)
         t = intersect_flat_surface_2d(direction, origin, normal)
-        ray_end = direction * t + origin
-        return t, ray_end, normal
+        return t,  direction * t + origin, normal
     t = intersect_sphere_2d(direction, origin, radius)
     ray_end = direction * t + origin
     return t, ray_end, Vector2(-ray_end.x, -ray_end.y - radius).normalized
@@ -142,7 +141,6 @@ def build_shape_2d(radius: float, semi_diam: float,
         xs = [da * i - semi_diam for i in range(steps)]
         sgn = -1.0 if radius > 0 else 1.0
         ys = [-radius - sgn * math.sqrt((radius * radius - x * x)) for x in xs]
-
     for index, (xi, yi) in enumerate(zip(xs, ys)):
         (xt, yt) = transform.transform_vect(Vector2(xi, yi), 1.0)
         xs[index] = xt
