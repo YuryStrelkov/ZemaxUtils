@@ -1,39 +1,40 @@
-from .common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY
+from ..common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY
+from ..Vectors.vector3 import Vector3
+from ..Vectors.vector4 import Vector4
 from dataclasses import dataclass
-from .vector4 import Vector4
-from .vector3 import Vector3
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 import math
 
-_M00 = '_m00'
-_M01 = '_m01'
-_M02 = '_m02'
-_M03 = '_m03'
-_M10 = '_m10'
-_M11 = '_m11'
-_M12 = '_m12'
-_M13 = '_m13'
-_M20 = '_m20'
-_M21 = '_m21'
-_M22 = '_m22'
-_M23 = '_m23'
-_M30 = '_m30'
-_M31 = '_m31'
-_M32 = '_m32'
-_M33 = '_m33'
 
-
-@dataclass
+@dataclass(slots=True)
 class Matrix4:
     """
     mutable Matrix 4d
     """
+    _m00: float
+    _m10: float
+    _m20: float
+    _m30: float
 
-    __slots__ = ('_m00', '_m01', '_m02', '_m03',
-                 '_m10', '_m11', '_m12', '_m13',
-                 '_m20', '_m21', '_m22', '_m23',
-                 '_m30', '_m31', '_m32', '_m33')
+    _m01: float
+    _m11: float
+    _m21: float
+    _m31: float
+
+    _m02: float
+    _m12: float
+    _m22: float
+    _m32: float
+
+    _m03: float
+    _m13: float
+    _m23: float
+    _m33: float
+    # __slots__ = ('_m00', '_m01', '_m02', '_m03',
+    #              '_m10', '_m11', '_m12', '_m13',
+    #              '_m20', '_m21', '_m22', '_m23',
+    #              '_m30', '_m31', '_m32', '_m33')
 
     # row 0 getters
     @property
@@ -215,21 +216,21 @@ class Matrix4:
         yield self._m33
 
     @classmethod
-    def identity(cls):
+    def identity(cls) -> 'Matrix4':
         return cls(1.0, 0.0, 0.0, 0.0,
                    0.0, 1.0, 0.0, 0.0,
                    0.0, 0.0, 1.0, 0.0,
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def zeros(cls):
+    def zeros(cls) -> 'Matrix4':
         return cls(0.0, 0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0, 0.0)
 
     @classmethod
-    def look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = None):
+    def look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = None) -> 'Matrix4':
         """
         :param target: цель на которую смотрим
         :param eye: положение глаза в пространстве
@@ -252,7 +253,7 @@ class Matrix4:
                    Vector3.dot(x_axis, -eye), Vector3.dot(y_axis, -eye), Vector3.dot(z_axis, -eye), 1.0)
 
     @classmethod
-    def transform_look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = None):
+    def transform_look_at(cls, target: Vector3, eye: Vector3, up: Vector3 = None) -> 'Matrix4':
         """
         :param target: цель на которую смотрим
         :param eye: положение глаза в пространстве
@@ -275,7 +276,8 @@ class Matrix4:
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def build_perspective_projection_matrix(cls, fov: float = 70.0, aspect: float = 1.0, z_near: float = 0.01, z_far: float = 1000):
+    def build_perspective_projection_matrix(cls, fov: float = 70.0, aspect: float = 1.0,
+                                            z_near: float = 0.01, z_far: float = 1000) -> 'Matrix4':
         """
         :param fov: угол обзора
         :param aspect: соотношение сторон
@@ -295,14 +297,14 @@ class Matrix4:
     def build_ortho_projection_matrix(cls,
                                       bottom: float, top: float,
                                       left: float, right: float,
-                                      near: float, far: float):
+                                      near: float, far: float) -> 'Matrix4':
         return cls(2.0 / (right - left), 0.0,                  0.0,                0.0,
                    0.0,                  2.0 / (top - bottom), 0.0,                0.0,
                    0.0,                  0.0,                 -2.0 / (far - near), 0.0,
                    (right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0)
 
     @classmethod
-    def rotate_x(cls, angle: float, angle_in_rad: bool = False):
+    def rotate_x(cls, angle: float, angle_in_rad: bool = False) -> 'Matrix4':
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -313,7 +315,7 @@ class Matrix4:
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def rotate_y(cls, angle: float, angle_in_rad: bool = False):
+    def rotate_y(cls, angle: float, angle_in_rad: bool = False) -> 'Matrix4':
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -324,7 +326,7 @@ class Matrix4:
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def rotate_z(cls, angle: float, angle_in_rad: bool = False):
+    def rotate_z(cls, angle: float, angle_in_rad: bool = False) -> 'Matrix4':
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -335,19 +337,19 @@ class Matrix4:
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def rotate_xyz(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True):
+    def rotate_xyz(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True) -> 'Matrix4':
         return cls.rotate_x(angle_x, angle_in_rad) * \
                cls.rotate_y(angle_y, angle_in_rad) * \
                cls.rotate_z(angle_z, angle_in_rad)
 
     @classmethod
-    def rotate_zyx(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True):
+    def rotate_zyx(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True) -> 'Matrix4':
         return cls.rotate_z(angle_z, angle_in_rad) * \
                cls.rotate_y(angle_y, angle_in_rad) * \
                cls.rotate_x(angle_x, angle_in_rad)
 
     @classmethod
-    def build_basis(cls, ey: Vector3, ez: Vector3 = None):
+    def build_basis(cls, ey: Vector3, ez: Vector3 = None) -> 'Matrix4':
         if ez is None:
             ez = Vector3(0.0, 0.0, 1.0)
 
@@ -362,13 +364,13 @@ class Matrix4:
                    0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def from_np_array(cls, array: np.ndarray):
+    def from_np_array(cls, array: np.ndarray) -> 'Matrix4':
         assert isinstance(array, np.ndarray)
         assert array.size == 16
         return cls(*array.flat)
 
     @classmethod
-    def build_transform(cls, right: Vector3, up: Vector3, front: Vector3, origin: Vector3 = None):
+    def build_transform(cls, right: Vector3, up: Vector3, front: Vector3, origin: Vector3 = None) -> 'Matrix4':
         """
         -- НЕ ПРОВЕРЯЕТ ОРТОГОНАЛЬНОСТЬ front, up, right !!!
         :param front:
@@ -431,7 +433,7 @@ class Matrix4:
     def right_up_front(self) -> Tuple[Vector3, Vector3, Vector3]:
         return self.right, self.up, self.front
 
-    def transpose(self):
+    def transpose(self) -> 'Matrix4':
         self.m01, self.m10 = self.m10, self.m01
         self.m02, self.m20 = self.m20, self.m02
         self.m03, self.m30 = self.m30, self.m03
@@ -441,7 +443,7 @@ class Matrix4:
         return self
 
     @property
-    def transposed(self):
+    def transposed(self) -> 'Matrix4':
         return self.__copy__().transpose()
 
     @property
@@ -457,7 +459,7 @@ class Matrix4:
              + self.m02 * (self.m10 * a1323 - self.m11 * a0323 + self.m13 * a0123) \
              - self.m03 * (self.m10 * a1223 - self.m11 * a0223 + self.m12 * a0123)
 
-    def invert(self):
+    def invert(self) -> 'Matrix4':
         a2323: float = self.m22 * self.m33 - self.m23 * self.m32
         a1323: float = self.m21 * self.m33 - self.m23 * self.m31
         a1223: float = self.m21 * self.m32 - self.m22 * self.m31
@@ -526,35 +528,35 @@ class Matrix4:
         return self
 
     @property
-    def inverted(self):
+    def inverted(self) -> 'Matrix4':
         return self.__copy__().invert()
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, Matrix4):
             return False
         return not any(v1 != v2 for v1, v2 in zip(self, other))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "" \
                f"{{\n\t\"m00\": {self.m00:{_4F}}, \"m01\": {self.m01:{_4F}}, \"m02\": {self.m02:{_4F}}, \"m03\": {self.m03:{_4F}},\n" \
                f"\t\"m10\": {self.m10:{_4F}}, \"m11\": {self.m11:{_4F}}, \"m12\": {self.m12:{_4F}}, \"m13\": {self.m13:{_4F}},\n" \
                f"\t\"m20\": {self.m20:{_4F}}, \"m21\": {self.m21:{_4F}}, \"m22\": {self.m22:{_4F}}, \"m23\": {self.m23:{_4F}},\n" \
                f"\t\"m30\": {self.m30:{_4F}}, \"m31\": {self.m31:{_4F}}, \"m32\": {self.m32:{_4F}}, \"m33\": {self.m33:{_4F}}\n}}"
 
-    def __copy__(self):
+    def __copy__(self) -> 'Matrix4':
         return Matrix4(*(val for val in self))
 
-    def __neg__(self):
+    def __neg__(self) -> 'Matrix4':
         return self.__mul__(-1.0)
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             return Matrix4(*(s + o for s, o in zip(self, other)))
         if isinstance(other, int) or isinstance(other, float):
             return Matrix4(*(s + other for s in self))
         raise RuntimeError(f"Matrix4::Add::wrong argument type {type(other)}")
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             for attr, value in zip(Matrix4.__slots__, other):
                 self.__setattr__(attr, self.__getattribute__(attr) + value)
@@ -566,21 +568,21 @@ class Matrix4:
 
     __radd__ = __add__
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             return Matrix4(*(s - o for s, o in zip(self, other)))
         if isinstance(other, int) or isinstance(other, float):
             return Matrix4(*(s - other for s in self))
         raise RuntimeError(f"Matrix4::Sub::wrong argument type {type(other)}")
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             return Matrix4(*(o - s for s, o in zip(self, other)))
         if isinstance(other, int) or isinstance(other, float):
             return Matrix4(*(other - s for s in self))
         raise RuntimeError(f"Matrix4::Sub::wrong argument type {type(other)}")
 
-    def __isub__(self, other):
+    def __isub__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             for attr, value in zip(Matrix4.__slots__, other):
                 self.__setattr__(attr, self.__getattribute__(attr) - value)
@@ -590,7 +592,7 @@ class Matrix4:
                 self.__setattr__(attr, self.__getattribute__(attr) - other)
         raise RuntimeError(f"Matrix4::ISub::wrong argument type {type(other)}")
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Union['Matrix4', Vector4]:
         if isinstance(other, Matrix4):
             return Matrix4(self.m00 * other.m00 + self.m01 * other.m10 + self.m02 * other.m20 + self.m03 * other.m30,
                            self.m00 * other.m01 + self.m01 * other.m11 + self.m02 * other.m21 + self.m03 * other.m31,
@@ -617,7 +619,7 @@ class Matrix4:
             return Matrix4(*(other * s for s in self))
         raise RuntimeError(f"Matrix4::Mul::wrong argument type {type(other)}")
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> Union['Matrix4', Vector4]:
         if isinstance(other, Matrix4):
             return Matrix4(other.m00 * self.m00 + other.m01 * self.m10 + other.m02 * self.m20 + other.m03 * self.m30,
                            other.m00 * self.m01 + other.m01 * self.m11 + other.m02 * self.m21 + other.m03 * self.m31,
@@ -644,7 +646,7 @@ class Matrix4:
             return Matrix4(*(other * s for s in self))
         raise RuntimeError(f"Matrix4::Mul::wrong argument type {type(other)}")
 
-    def __imul__(self, other):
+    def __imul__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             _m00 = self.m00
             _m01 = self.m01
@@ -685,21 +687,21 @@ class Matrix4:
             return self
         raise RuntimeError(f"Matrix4::IMul::wrong argument type {type(other)}")
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             return Matrix4.__mul__(self, other.inverted)
         if isinstance(other, int) or isinstance(other, float):
             return Matrix4(*(s / other for s in self))
         raise RuntimeError(f"Matrix4::TrueDiv::wrong argument type {type(other)}")
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             return Matrix4.__mul__(self.inverted, other)
         if isinstance(other, int) or isinstance(other, float):
             return Matrix4(*(other / s for s in self))
         raise RuntimeError(f"Matrix4::TrueDiv::wrong argument type {type(other)}")
 
-    def __idiv__(self, other):
+    def __idiv__(self, other) -> 'Matrix4':
         if isinstance(other, Matrix4):
             return Matrix4.__imul__(self, other.inverted)
         if isinstance(other, int) or isinstance(other, float):

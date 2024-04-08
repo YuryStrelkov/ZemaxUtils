@@ -1,15 +1,10 @@
-from .common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD
+from ..common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD
+from ..Matrices.matrix4 import Matrix4
+from ..Vectors.vector3 import Vector3
 from dataclasses import dataclass
-from .matrix4 import Matrix4
-from .vector3 import Vector3
+from typing import Union
 import numpy as np
 import math
-
-
-_EW = '_ew'
-_EX = '_ex'
-_EY = '_ey'
-_EZ = '_ez'
 
 
 @dataclass
@@ -64,25 +59,25 @@ class Quaternion:
         yield self._ey
         yield self._ez
 
-    def conj(self):
+    def conj(self) -> 'Quaternion':
         self.ex *= -1
         self.ey *= -1
         self.ez *= -1
         return self
 
     @property
-    def conjugated(self):
+    def conjugated(self) -> 'Quaternion':
         return Quaternion(self.ew, -self.ex, -self.ey, -self.ez)
 
     @property
-    def magnitude_sqr(self):
+    def magnitude_sqr(self) -> float:
         return sum(x * x for x in self)
 
     @property
-    def magnitude(self):
+    def magnitude(self) -> float:
         return math.sqrt(self.magnitude_sqr)
 
-    def normalize(self):
+    def normalize(self) -> 'Quaternion':
         """
         self normalize
         """
@@ -97,7 +92,7 @@ class Quaternion:
             return self
 
     @property
-    def normalized(self):
+    def normalized(self) -> 'Quaternion':
         """
         normalized copy
         """
@@ -107,7 +102,7 @@ class Quaternion:
         except ZeroDivisionError as _:
             return Quaternion()
 
-    def recip(self):
+    def recip(self) -> 'Quaternion':
         try:
             self.conj()
             return self.__imul__(1.0 / self.magnitude_sqr)
@@ -115,10 +110,10 @@ class Quaternion:
             return self
 
     @property
-    def reciprocal(self):
+    def reciprocal(self) -> 'Quaternion':
         return self.__copy__().recip()
 
-    def invert(self):
+    def invert(self) -> 'Quaternion':
         try:
             n2 = 1.0 / self.magnitude
             self.ew *= n2
@@ -130,28 +125,28 @@ class Quaternion:
             return self
 
     @property
-    def inverted(self):
+    def inverted(self) -> 'Quaternion':
         try:
             n2 = 1.0 / self.magnitude
             return Quaternion(n2 * self.ew, -n2 * self.ex, -n2 * self.ey, -n2 * self.ez)
         except ZeroDivisionError as _:
             return Quaternion()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{{\"ew\": {self.ew:{_4F}}, \"ex\": {self.ex:{_4F}}, \"ey\": {self.ey:{_4F}}, \"ez\": {self.ez:{_4F}}}}"
 
-    def __neg__(self):
+    def __neg__(self) -> 'Quaternion':
         return Quaternion(-self.ew, -self.ex, -self.ey, -self.ez)
 
-    def __copy__(self):
+    def __copy__(self) -> 'Quaternion':
         return Quaternion(self.ew, self.ex, self.ey, self.ez)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, Quaternion):
             return False
         return not any(v1 != v2 for v1, v2 in zip(self, other))
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             return Quaternion(self.ex + other.ex, self.ey + other.ey, self.ez + other.ez, self.ew + other.ew)
         if isinstance(other, int) or isinstance(other, float):
@@ -160,7 +155,7 @@ class Quaternion:
 
     __radd__ = __add__
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             self.ex += other.ex
             self.ey += other.ey
@@ -175,21 +170,21 @@ class Quaternion:
             return self
         raise RuntimeError(f"Quaternion::IAdd::wrong argument type {type(other)}")
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             return Quaternion(self.ex - other.ex, self.ey - other.ey, self.ez - other.ez, self.ew - other.ew)
         if isinstance(other, int) or isinstance(other, float):
             return Quaternion(self.ex - other, self.ey - other, self.ez - other, self.ew - other)
         raise RuntimeError(f"Quaternion::Sub::wrong argument type {type(other)}")
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             return Quaternion(other.ex - self.ex, other.ey - self.ey, other.ez - self.ez, other.ew - self.ew)
         if isinstance(other, int) or isinstance(other, float):
             return Quaternion(other - self.ex, other - self.ey, other - self.ez, other - self.ew)
         raise RuntimeError(f"Quaternion::RSub::wrong argument type {type(other)}")
 
-    def __isub__(self, other):
+    def __isub__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             self.ex -= other.ex
             self.ey -= other.ey
@@ -204,7 +199,7 @@ class Quaternion:
             return self
         raise RuntimeError(f"Quaternion::ISub::wrong argument type {type(other)}")
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Union['Quaternion', Vector3]:
         if isinstance(other, Quaternion):
             return Quaternion(self.ew * other.ew - self.ex * other.ex - self.ey * other.ey - self.ez * other.ez,
                               self.ew * other.ex + self.ex * other.ew - self.ey * other.ez + self.ez * other.ey,
@@ -216,7 +211,7 @@ class Quaternion:
             return Quaternion(other * self.ex, other * self.ey, other * self.ez, other * self.ew)
         raise RuntimeError(f"Quaternion::Mul::wrong argument type {type(other)}")
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> Union['Quaternion', Vector3]:
         if isinstance(other, Quaternion):
             return Quaternion(other.ew * self.ew - other.ex * self.ex - other.ey * self.ey - other.ez * self.ez,
                               other.ew * self.ex + other.ex * self.ew - other.ey * self.ez + other.ez * self.ey,
@@ -228,7 +223,7 @@ class Quaternion:
             return Quaternion(other * self.ex, other * self.ey, other * self.ez, other * self.ew)
         raise RuntimeError(f"Quaternion::Mul::wrong argument type {type(other)}")
 
-    def __imul__(self, other):
+    def __imul__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             ew = self.ew
             ex = self.ex
@@ -247,19 +242,19 @@ class Quaternion:
             return self
         raise RuntimeError(f"Quaternion::Mul::wrong argument type {type(other)}")
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             return self.__mul__(other.reciprocal)
         if isinstance(other, int) or isinstance(other, float):
             return Quaternion(self.ex / other, self.ey / other, self.ez / other, self.ew / other)
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             return other.__mul__(self.reciprocal)
         if isinstance(other, int) or isinstance(other, float):
             return Quaternion(other / self.ex, other / self.ey, other / self.ez, other / self.ew)
 
-    def __idiv__(self, other):
+    def __idiv__(self, other) -> 'Quaternion':
         if isinstance(other, Quaternion):
             return self.__imul__(other.reciprocal)
         if isinstance(other, int) or isinstance(other, float):
@@ -299,7 +294,7 @@ class Quaternion:
                        0.0, 0.0, 0.0, 1.0)
 
     @classmethod
-    def from_euler_angles(cls, roll: float, pitch: float, yaw: float, in_radians: bool = True):
+    def from_euler_angles(cls, roll: float, pitch: float, yaw: float, in_radians: bool = True) -> 'Quaternion':
         # работает
         assert all(isinstance(arg, int) or isinstance(arg, float) for arg in (roll, pitch, yaw))
         if in_radians:
@@ -321,14 +316,14 @@ class Quaternion:
                    cr * sp * cy + sr * cp * sy, cr * cp * sy - sr * sp * cy)
 
     @classmethod
-    def from_axis_and_angle(cls, axis: Vector3, angle: float):
+    def from_axis_and_angle(cls, axis: Vector3, angle: float) -> 'Quaternion':
         assert isinstance(axis, Vector3)
         assert isinstance(angle, float) or isinstance(angle, int)
         angle *= 0.5
         return cls(math.cos(angle), -axis.x * math.sin(angle), -axis.y * math.sin(angle), -axis.z * math.sin(angle))
 
     @classmethod
-    def from_rotation_matrix(cls, rm: Matrix4):
+    def from_rotation_matrix(cls, rm: Matrix4) -> 'Quaternion':
         assert isinstance(rm, Matrix4)
         qw = math.sqrt(max(0.0, 1.0 + rm.m00 + rm.m11 + rm.m22)) * 0.5
         qx = math.sqrt(max(0.0, 1.0 + rm.m00 - rm.m11 - rm.m22)) * 0.5
@@ -351,7 +346,7 @@ class Quaternion:
         return sum(ai * bi for ai, bi in zip(a, b))
 
     @classmethod
-    def max(cls, a, b):
+    def max(cls, a, b) -> 'Quaternion':
         assert isinstance(a, Quaternion)
         assert isinstance(b, Quaternion)
         return cls(max(a.ew, b.ew),
@@ -360,7 +355,7 @@ class Quaternion:
                    max(a.ez, b.ez))
 
     @classmethod
-    def min(cls, a, b):
+    def min(cls, a, b) -> 'Quaternion':
         assert isinstance(a, Quaternion)
         assert isinstance(b, Quaternion)
         return cls(min(a.ew, b.ew),
@@ -369,7 +364,7 @@ class Quaternion:
                    min(a.ez, b.ez))
 
     @classmethod
-    def from_np_array(cls, array: np.ndarray):
+    def from_np_array(cls, array: np.ndarray) -> 'Quaternion':
         assert isinstance(array, np.ndarray)
         assert array.size == 4
         return cls(*array.flat)
@@ -450,7 +445,7 @@ if __name__ == "__main__":
 #
 #     qrm = q.to_rotation_matrix()
 #
-#     print("rot m from vectors")
+#     print("rot m from Vectors")
 #     print(basis)
 #
 #     print("rot m from quaternion")

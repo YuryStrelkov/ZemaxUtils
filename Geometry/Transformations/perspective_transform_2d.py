@@ -1,6 +1,6 @@
-from .matrix3 import Matrix3
-from .vector2 import Vector2
-from typing import List
+from ..Matrices.matrix3 import Matrix3
+from ..Vectors.vector2 import Vector2
+from typing import List, Iterable
 import math
 
 
@@ -27,7 +27,7 @@ class PerspectiveTransform2d:
                f"\"inv_transform\":\n{self.inv_transform_matrix}\n" \
                f"}}"
 
-    def _update_invert_transform(self):
+    def _update_invert_transform(self) -> None:
         self._raw_i_t_m = True
 
     @property
@@ -167,22 +167,22 @@ class PerspectiveTransform2d:
         assert isinstance(point, Vector2)
         return Matrix3.perspective_multiply(self.transform_matrix, point)
 
-    def transform_points(self, points: List[Vector2]) -> List[Vector2]:
+    def transform_points(self, points: Iterable[Vector2]) -> List[Vector2]:
         return [self.transform_point(p) for p in points]
 
     def inv_transform_point(self, point: Vector2) -> Vector2:
         assert isinstance(point, Vector2)
         return Matrix3.perspective_multiply(self.inv_transform_matrix, point)
 
-    def inv_transform_points(self, points: List[Vector2]) -> List[Vector2]:
+    def inv_transform_points(self, points: Iterable[Vector2]) -> List[Vector2]:
         return [self.inv_transform_point(p) for p in points]
 
     @classmethod
-    def from_four_points(cls, *args):
+    def from_four_points(cls, *args) -> 'PerspectiveTransform2d':
         return cls(Matrix3.perspective_transform_from_four_points(*args))
 
     @classmethod
-    def from_eight_points(cls, *args):
+    def from_eight_points(cls, *args) -> 'PerspectiveTransform2d':
         return cls(Matrix3.perspective_transform_from_eight_points(*args))
 
 
@@ -194,3 +194,4 @@ def perspective_transform_test():
     print(vt)
     print(t.inv_transform_point(vt))
     print(t)
+    

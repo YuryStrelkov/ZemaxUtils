@@ -1,4 +1,4 @@
-from .vector3 import Vector3
+from ..Vectors.vector3 import Vector3
 from .ray import Ray
 
 
@@ -40,11 +40,12 @@ class Plane:
             return False
         return True
 
-    def flip(self):
+    def flip(self) -> 'Plane':
         self._normal *= -1.0
         return self
 
-    def flipped(self):
+    @property
+    def flipped(self) -> 'Plane':
         return Plane(-self.normal, self.origin)
 
     @property
@@ -85,10 +86,10 @@ class Plane:
         return ray
 
     @classmethod
-    def from_three_points(cls, p1: Vector3, p2: Vector3, p3: Vector3):
-        assert isinstance(p1, Vector3)
-        assert isinstance(p2, Vector3)
-        assert isinstance(p3, Vector3)
+    def from_three_points(cls, *points: Vector3) -> 'Plane':
+        assert len(points) == 3
+        assert all(isinstance(p, Vector3) for p in points)
+        p1, p2, p3 = points
         normal = Vector3.cross(p2 - p1, p3 - p1).normalize()
         return cls(normal, p1)
 

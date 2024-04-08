@@ -4,9 +4,9 @@ from PyQt5.QtGui import QPixmap
 import sys
 
 
-class ImageWidget(QLabel):
+class UIImageWidget(QLabel):
     def __init__(self, source_str: str = None, parent: QWidget = None):
-        super(ImageWidget, self).__init__(parent)
+        super(UIImageWidget, self).__init__(parent)
         self._pixmap_src = source_str
         self._load_pix_map()
         self.setScaledContents(True)
@@ -36,11 +36,11 @@ class ImageWidget(QLabel):
 
     def setPixmap(self, pm: QPixmap) -> None:
         self.update_margins()
-        super(ImageWidget, self).setPixmap(pm)
+        super(UIImageWidget, self).setPixmap(pm)
 
     def resizeEvent(self, event: QResizeEvent) -> None:
         self.update_margins()
-        super(ImageWidget, self).resizeEvent(event)
+        super(UIImageWidget, self).resizeEvent(event)
 
     def update_margins(self):
         if self.pixmap() is None:
@@ -62,6 +62,6 @@ class ImageWidget(QLabel):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = ImageWidget("snap-shoot.png")
+    window = UIImageWidget("snap-shoot.png")
     window.show()
     sys.exit(app.exec_())

@@ -1,6 +1,6 @@
-from .common import RAD_TO_DEG, DEG_TO_RAD
-from .matrix3 import Matrix3
-from .vector2 import Vector2
+from ..common import RAD_TO_DEG, DEG_TO_RAD
+from ..Matrices.matrix3 import Matrix3
+from ..Vectors.vector2 import Vector2
 import math
 
 

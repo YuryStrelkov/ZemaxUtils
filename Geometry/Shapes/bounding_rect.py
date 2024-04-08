@@ -1,10 +1,8 @@
-from typing import Union
-
+from ..Transformations.transform_2d import Transform2d
+from ..Vectors.vector2 import Vector2
 from matplotlib import pyplot as plt
-
-from .transform_2d import Transform2d
-from .vector2 import Vector2
-from .common import *
+from typing import Union, Generator
+from ..common import *
 
 
 class BoundingRect:
@@ -20,12 +18,12 @@ class BoundingRect:
                f"\t\"max\": {self.max}" \
                f"\n}}"
 
-    def reset(self):
+    def reset(self) -> None:
         self._max: Vector2 = Vector2(-1e12, -1e12)
         self._min: Vector2 = Vector2( 1e12, 1e12)
 
     @property
-    def points(self):
+    def points(self) -> Generator[Vector2, None, None]:
         c = self.center
         s = self.size
         yield Vector2(c.x - s.x * 0.5, c.y + s.y * 0.5)
@@ -44,13 +42,13 @@ class BoundingRect:
         if v.y < self._min.y:
             self._min.y = v.y
 
-    def transform_bbox(self, transform: Transform2d):
+    def transform_bbox(self, transform: Transform2d) -> 'BoundingRect':
         bounds = BoundingRect()
         for pt in self.points:
             bounds.encapsulate(transform.transform_vect(pt))
         return bounds
 
-    def inv_transform_bbox(self, transform: Transform2d):
+    def inv_transform_bbox(self, transform: Transform2d) -> 'BoundingRect':
         bounds = BoundingRect()
         for pt in self.points:
             bounds.encapsulate(transform.inv_transform_vect(pt))
@@ -88,7 +86,7 @@ class BoundingRect:
         self._min = value - s
         self._max = value + s
 
-    def distance(self, point: Vector2):
+    def distance(self, point: Vector2) -> float:
         orig = self.center
         size = self.size
 

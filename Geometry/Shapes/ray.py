@@ -1,5 +1,5 @@
-from .transform_3d import Transform3d
-from .vector3 import Vector3
+from ..Transformations.transform_3d import Transform3d
+from ..Vectors.vector3 import Vector3
 import dataclasses
 
 
@@ -83,11 +83,11 @@ class Ray:
     def end_point(self) -> Vector3:
         return self.origin + self.direction * self.length
 
-    def transform_ray(self, t: Transform3d):
+    def transform_ray(self, t: Transform3d) -> 'Ray':
         self._direction = t.transform_vect(self.direction, 0.0).normalize()
         self._origin    = t.transform_vect(self.origin,    1.0)
         return self
 
-    def transformed_ray(self, t: Transform3d):
+    def transformed_ray(self, t: Transform3d) -> 'Ray':
         r = Ray(self.direction, self.origin)
         return r.transform_ray(t)

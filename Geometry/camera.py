@@ -1,10 +1,9 @@
+from .Transformations.transform_3d import Transform3d
+from .Shapes.bounding_box import BoundingBox
 from .common import NUMERICAL_ACCURACY
-from .bounding_box import BoundingBox
-from .transform_3d import Transform3d
-from .matrix4 import Matrix4
-from .vector3 import Vector3
-from .vector4 import Vector4
-from .ray import Ray
+from .Matrices.matrix4 import Matrix4
+from .Vectors import Vector3, Vector4
+from .Shapes import Ray
 import math
 
 PERSPECTIVE_PROJECTION_MODE = 0
@@ -49,7 +48,7 @@ class Camera:
     def __hash__(self) -> int:
         return hash((self._transform, self._projection, self._inv_projection))
 
-    def _build_projection(self):
+    def _build_projection(self) -> None:
         """
         Строит матрицу перспективного искажения.
         :return:
@@ -65,7 +64,7 @@ class Camera:
                                                       -size, size, self._z_near, self._z_far)
         self._inv_projection = self._projection.inverted
 
-    def setting_from_json(self, camera):
+    def setting_from_json(self, camera) -> None:
         if "z_far" in camera:
             try:
                 self.z_far = float(camera["z_far"])

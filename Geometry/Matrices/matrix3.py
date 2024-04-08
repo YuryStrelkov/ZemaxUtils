@@ -1,35 +1,29 @@
-from .common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY
+from ..common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY
+from ..Vectors.vector2 import Vector2
+from ..Vectors.vector3 import Vector3
 from dataclasses import dataclass
-from .vector3 import Vector3
-from .vector2 import Vector2
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 import math
 
-__license__ = "GNU Lesser General Public License v3"
 
-_M00 = '_m00'
-_M01 = '_m01'
-_M02 = '_m02'
-
-_M10 = '_m10'
-_M11 = '_m11'
-_M12 = '_m12'
-
-_M20 = '_m20'
-_M21 = '_m21'
-_M22 = '_m22'
-
-
-@dataclass
+@dataclass(slots=True)
 class Matrix3:
     """
     mutable Matrix 3d
     """
-
-    __slots__ = ('_m00', '_m01', '_m02',
-                 '_m10', '_m11', '_m12',
-                 '_m20', '_m21', '_m22')
+    _m00: float
+    _m10: float
+    _m20: float
+    _m01: float
+    _m11: float
+    _m21: float
+    _m02: float
+    _m12: float
+    _m22: float
+    # __slots__ = ('_m00', '_m01', '_m02',
+    #              '_m10', '_m11', '_m12',
+    #              '_m20', '_m21', '_m22')
 
     # row 0 getters
     @property
@@ -136,25 +130,25 @@ class Matrix3:
         yield self._m21
         yield self._m22
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, Matrix3):
             return False
         return not any(v1 != v2 for v1, v2 in zip(self, other))
 
     @classmethod
-    def identity(cls):
+    def identity(cls) -> 'Matrix3':
         return cls(1.0, 0.0, 0.0,
                    0.0, 1.0, 0.0,
                    0.0, 0.0, 1.0)
 
     @classmethod
-    def zeros(cls):
+    def zeros(cls) -> 'Matrix3':
         return cls(0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0)
 
     @classmethod
-    def rotate_x(cls, angle: float, angle_in_rad: bool = True):
+    def rotate_x(cls, angle: float, angle_in_rad: bool = True) -> 'Matrix3':
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -164,7 +158,7 @@ class Matrix3:
                    0.0, sin_a, cos_a)
 
     @classmethod
-    def rotate_y(cls, angle: float, angle_in_rad: bool = True):
+    def rotate_y(cls, angle: float, angle_in_rad: bool = True) -> 'Matrix3':
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -174,7 +168,7 @@ class Matrix3:
                    -sin_a, 0.0, cos_a)
 
     @classmethod
-    def rotate_z(cls, angle: float, angle_in_rad: bool = True):
+    def rotate_z(cls, angle: float, angle_in_rad: bool = True) -> 'Matrix3':
         if not angle_in_rad:
             angle *= DEG_TO_RAD
         cos_a = math.cos(angle)
@@ -184,19 +178,19 @@ class Matrix3:
                    0.0, 0.0, 1.0)
 
     @classmethod
-    def rotate_xyz(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True):
+    def rotate_xyz(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True) -> 'Matrix3':
         return cls.rotate_x(angle_x, angle_in_rad) * \
                cls.rotate_y(angle_y, angle_in_rad) * \
                cls.rotate_z(angle_z, angle_in_rad)
 
     @classmethod
-    def rotate_zyx(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True):
+    def rotate_zyx(cls, angle_x: float, angle_y: float, angle_z: float, angle_in_rad: bool = True) -> 'Matrix3':
         return cls.rotate_z(angle_z, angle_in_rad) * \
                cls.rotate_y(angle_y, angle_in_rad) * \
                cls.rotate_x(angle_x, angle_in_rad)
 
     @classmethod
-    def build_basis(cls, ey: Vector3, ez: Vector3 = None):
+    def build_basis(cls, ey: Vector3, ez: Vector3 = None) -> 'Matrix3':
         assert isinstance(ey, Vector2)
         if ez is None:
             ez = Vector3(0.0, 0.0, 1.0)
@@ -211,20 +205,20 @@ class Matrix3:
                    ex.z, ey.z, ez.z)
 
     @classmethod
-    def from_np_array(cls, array: np.ndarray):
+    def from_np_array(cls, array: np.ndarray) -> 'Matrix3':
         assert isinstance(array, np.ndarray)
         assert array.size == 9
         return cls(*array.flat)
 
     @classmethod
-    def translate(cls, position: Vector2):
+    def translate(cls, position: Vector2) -> 'Matrix3':
         assert isinstance(position, Vector2)
         return cls(1.0, 0.0, position.x,
                    0.0, 1.0, position.y,
                    0.0, 0.0, 1.0)
 
     @classmethod
-    def build_transform(cls, right: Vector3, up: Vector3, front: Vector3):
+    def build_transform(cls, right: Vector3, up: Vector3, front: Vector3) -> 'Matrix3':
         """
         -- НЕ ПРОВЕРЯЕТ ОРТОГОНАЛЬНОСТЬ front, up, right !!!
         :param front:
@@ -260,25 +254,26 @@ class Matrix3:
         return Vector3(y2, x2, z2)
 
     @classmethod
-    def from_euler_angles(cls, roll: float = 0.0, pitch: float = 0.0, yaw: float = 0.0, angles_in_rad: bool = True):
+    def from_euler_angles(cls, roll: float = 0.0, pitch: float = 0.0, yaw: float = 0.0,
+                          angles_in_rad: bool = True) -> 'Matrix3':
         """
         fill the matrix from Euler angles in radians
         """
         assert all(isinstance(v, float) for v in (roll, pitch, yaw))
         if angles_in_rad:
+            cr = math.cos(roll)
+            sr = math.sin(roll)
             cp = math.cos(pitch)
             sp = math.sin(pitch)
-            sr = math.sin(roll)
-            cr = math.cos(roll)
-            sy = math.sin(yaw)
             cy = math.cos(yaw)
+            sy = math.sin(yaw)
         else:
+            cr = math.cos(roll * DEG_TO_RAD)
+            sr = math.sin(roll * DEG_TO_RAD)
             cp = math.cos(pitch * DEG_TO_RAD)
             sp = math.sin(pitch * DEG_TO_RAD)
-            sr = math.sin(roll * DEG_TO_RAD)
-            cr = math.cos(roll * DEG_TO_RAD)
-            sy = math.sin(yaw * DEG_TO_RAD)
             cy = math.cos(yaw * DEG_TO_RAD)
+            sy = math.sin(yaw * DEG_TO_RAD)
 
         return cls(cp * cy, (sr * sp * cy) - (cr * sy), (cr * sp * cy) + (sr * sy),
                    cp * sy, (sr * sp * sy) + (cr * cy), (cr * sp * sy) - (sr * cy),
@@ -310,21 +305,21 @@ class Matrix3:
     def front(self) -> Vector3:
         return Vector3(self.m02, self.m12, self.m22)
 
-    def transpose(self):
+    def transpose(self) -> 'Matrix3':
         self.m01, self.m10 = self.m10, self.m01
         self.m02, self.m20 = self.m20, self.m02
         self.m21, self.m12 = self.m12, self.m21
         return self
 
     @property
-    def transposed(self):
+    def transposed(self) -> 'Matrix3':
         return Matrix3.__copy__(self).transpose()
 
     @property
     def right_up_front(self) -> Tuple[Vector3, Vector3, Vector3]:
         return self.right, self.up, self.front
 
-    def invert(self):
+    def invert(self) -> 'Matrix3':
         det: float = (self.m00 * (self.m11 * self.m22 - self.m21 * self.m12) -
                       self.m01 * (self.m10 * self.m22 - self.m12 * self.m20) +
                       self.m02 * (self.m10 * self.m21 - self.m11 * self.m20))
@@ -354,21 +349,23 @@ class Matrix3:
         return self
 
     @property
-    def inverted(self):
+    def inverted(self) -> 'Matrix3':
         return self.__copy__().invert()
 
     def __str__(self) -> str:
-        return f"{{\n\t\"m00\": {self.m00:{_4F}}, \"m01\": {self.m01:{_4F}}, \"m02\": {self.m02:{_4F}},\n" \
-               f"\t\"m10\": {self.m10:{_4F}}, \"m11\": {self.m11:{_4F}}, \"m12\": {self.m12:{_4F}},\n" \
-               f"\t\"m20\": {self.m20:{_4F}}, \"m21\": {self.m21:{_4F}}, \"m22\": {self.m22:{_4F}}\n}}"
+        return f"\t\t{{\n" \
+               f"\t\t\t\"m00\": {self.m00:{_4F}}, \"m01\": {self.m01:{_4F}}, \"m02\": {self.m02:{_4F}},\n" \
+               f"\t\t\t\"m10\": {self.m10:{_4F}}, \"m11\": {self.m11:{_4F}}, \"m12\": {self.m12:{_4F}},\n" \
+               f"\t\t\t\"m20\": {self.m20:{_4F}}, \"m21\": {self.m21:{_4F}}, \"m22\": {self.m22:{_4F}}\n" \
+               f"\t\t}}"
 
-    def __copy__(self):
+    def __copy__(self) -> 'Matrix3':
         return Matrix3(*(val for val in self))
 
-    def __neg__(self):
+    def __neg__(self) -> 'Matrix3':
         return self.__mul__(-1.0)
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             return Matrix3(*(s + o for s, o in zip(self, other)))
         if isinstance(other, int) or isinstance(other, float):
@@ -377,7 +374,7 @@ class Matrix3:
 
     __radd__ = __add__
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             for attr, value in zip(Matrix3.__slots__, other):
                 self.__setattr__(attr, self.__getattribute__(attr) + value)
@@ -387,21 +384,21 @@ class Matrix3:
                 self.__setattr__(attr, self.__getattribute__(attr) + other)
         raise RuntimeError(f"Matrix3::Add::wrong argument type {type(other)}")
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             return Matrix3(*(s - o for s, o in zip(self, other)))
         if isinstance(other, int) or isinstance(other, float):
             return Matrix3(*(s - other for s in self))
         raise RuntimeError(f"Matrix3::Sub::wrong argument type {type(other)}")
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             return Matrix3(*(o - s for s, o in zip(self, other)))
         if isinstance(other, int) or isinstance(other, float):
             return Matrix3(*(other - s for s in self))
         raise RuntimeError(f"Matrix3::Sub::wrong argument type {type(other)}")
 
-    def __isub__(self, other):
+    def __isub__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             for attr, value in zip(Matrix3.__slots__, other):
                 self.__setattr__(attr, self.__getattribute__(attr) - value)
@@ -411,7 +408,7 @@ class Matrix3:
                 self.__setattr__(attr, self.__getattribute__(attr) - other)
         raise RuntimeError(f"Matrix3::Add::wrong argument type {type(other)}")
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Union[Vector3, 'Matrix3']:
         if isinstance(other, Matrix3):
             return Matrix3(self.m00 * other.m00 + self.m01 * other.m10 + self.m02 * other.m20,
                            self.m00 * other.m01 + self.m01 * other.m11 + self.m02 * other.m21,
@@ -430,7 +427,7 @@ class Matrix3:
             return Matrix3(*(other * s for s in self))
         raise RuntimeError(f"Matrix3::Mul::wrong argument type {type(other)}")
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> Union[Vector3, 'Matrix3']:
         if isinstance(other, Matrix3):
             return Matrix3(other.m00 * self.m00 + other.m01 * self.m10 + other.m02 * self.m20,
                            other.m00 * self.m01 + other.m01 * self.m11 + other.m02 * self.m21,
@@ -449,7 +446,7 @@ class Matrix3:
             return Matrix3(*(other * s for s in self))
         raise RuntimeError(f"Matrix3::Mul::wrong argument type {type(other)}")
 
-    def __imul__(self, other):
+    def __imul__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             _m00 = self.m00
             _m01 = self.m01
@@ -477,21 +474,21 @@ class Matrix3:
             return self
         raise RuntimeError(f"Matrix3::Mul::wrong argument type {type(other)}")
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             return Matrix3.__mul__(self, other.inverted)
         if isinstance(other, int) or isinstance(other, float):
             return Matrix3(*(s / other for s in self))
         raise RuntimeError(f"Matrix3::TrueDiv::wrong argument type {type(other)}")
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             return Matrix3.__mul__(self.inverted, other)
         if isinstance(other, int) or isinstance(other, float):
             return Matrix3(*(other / s for s in self))
         raise RuntimeError(f"Matrix3::TrueDiv::wrong argument type {type(other)}")
 
-    def __idiv__(self, other):
+    def __idiv__(self, other) -> 'Matrix3':
         if isinstance(other, Matrix3):
             return Matrix3.__imul__(self, other.inverted)
         if isinstance(other, int) or isinstance(other, float):
@@ -517,7 +514,7 @@ class Matrix3:
         return Vector2(p.x / p.z, p.y / p.z)
 
     @classmethod
-    def perspective_transform_from_four_points(cls, *args):
+    def perspective_transform_from_four_points(cls, *args) -> 'Matrix3':
         assert (all(isinstance(item, Vector2) for item in args) and len(args) == 4)
         ur, dr, dl, ul = args
         matrix = ( 1.0,  1.0, 1.0,  0.0,  0.0, 0.0, -ur.x, -ur.x,
@@ -533,7 +530,7 @@ class Matrix3:
         return cls(*(np.linalg.inv(matrix) @ b).flat, 1.0)
 
     @classmethod
-    def perspective_transform_from_eight_points(cls, *args):
+    def perspective_transform_from_eight_points(cls, *args) -> 'Matrix3':
         assert (all(isinstance(item, Vector2) for item in args) and len(args) == 8)
         ur_1, dr_1, dl_1, ul_1, ur_2, dr_2, dl_2, ul_2 = args
         # m00 | m01 | m02 | m10 | m11 | m12 |     m20    |     m21    |

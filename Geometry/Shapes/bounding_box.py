@@ -1,6 +1,7 @@
-from .transform_3d import Transform3d
-from .vector3 import Vector3
-from .common import *
+from ..Transformations.transform_3d import Transform3d
+from ..Vectors.vector3 import Vector3
+from typing import Generator
+from ..common import *
 
 
 class BoundingBox:
@@ -18,7 +19,7 @@ class BoundingBox:
                f"\n}}"
 
     @property
-    def points(self):
+    def points(self) -> Generator[Vector3, None, None]:
         c = self.center
         s = 0.5 * self.size
         yield Vector3(c.x - s.x, c.y + s.y, c.z - s.z)
@@ -31,7 +32,7 @@ class BoundingBox:
         yield Vector3(c.x - s.x, c.y - s.y, c.z + s.z)
         yield Vector3(c.x + s.x, c.y + s.y, c.z + s.z)
 
-    def reset(self):
+    def reset(self) -> None:
         self._max = Vector3(NUMERICAL_MIN_VALUE, NUMERICAL_MIN_VALUE, NUMERICAL_MIN_VALUE)
         self._min = Vector3(NUMERICAL_MAX_VALUE, NUMERICAL_MAX_VALUE, NUMERICAL_MAX_VALUE)
 
@@ -43,13 +44,13 @@ class BoundingBox:
         self._max = Vector3.max(self._max, v.max)
         self._min = Vector3.min(self._min, v.min)
 
-    def transform_bbox(self, transform: Transform3d):
+    def transform_bbox(self, transform: Transform3d) -> 'BoundingBox':
         bounds = BoundingBox()
         for pt in self.points:
             bounds.encapsulate(transform.transform_vect(pt))
         return bounds
 
-    def inv_transform_bbox(self, transform: Transform3d):
+    def inv_transform_bbox(self, transform: Transform3d) -> 'BoundingBox':
         bounds = BoundingBox()
         for pt in self.points:
             bounds.encapsulate(transform.inv_transform_vect(pt))
@@ -71,7 +72,7 @@ class BoundingBox:
     def center(self) -> Vector3:
         return (self._max + self._min) * 0.5
 
-    def distance(self, point: Vector3):
+    def distance(self, point: Vector3) -> float:
         orig = self.center
         size = self.size
 
