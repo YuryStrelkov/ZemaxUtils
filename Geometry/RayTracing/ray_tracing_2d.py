@@ -106,6 +106,8 @@ def build_shape_2d(radius: float, semi_diam: float,
         xs = [da * i - semi_diam for i in range(steps)]
         sgn = -1.0 if radius > 0 else 1.0
         ys = [-radius - sgn * math.sqrt((radius * radius - x * x)) for x in xs]
+    if not transform:
+        return xs, ys
     for index, (xi, yi) in enumerate(zip(xs, ys)):
         (xt, yt) = transform.transform_vect(Vector2(xi, yi), 1.0)
         xs[index] = xt
