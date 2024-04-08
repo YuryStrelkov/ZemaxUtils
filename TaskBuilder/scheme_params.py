@@ -1,8 +1,8 @@
-from .surface_params import SurfaceParams
-from .surface_params import read_surfaces
 from .fields_params import FieldsParams, load_fields_params
 from typing import Dict, List, Union, Iterable
 from .waves_params import Wave, read_waves
+from .surface_params import SurfaceParams
+from .surface_params import read_surfaces
 import json
 import os
 

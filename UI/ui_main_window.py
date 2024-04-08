@@ -1,10 +1,12 @@
 import json
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget, QTextEdit
 from PyQt5.QtGui import QIcon, QPalette, QColor
 import sys
 
 from TaskBuilder import SchemeParams
+from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
+from UI.UIStyle import load_style
 from UI.ui_task_file_view import UITaskFileView, UITaskFileViewsList
 from UI.ui_zemax_file_view import UIZemaxFileView
 from ZFile import ZFile
@@ -28,8 +30,29 @@ class UIMainWindow(QMainWindow):
         self.setWindowIcon(QIcon('./assets/editor.png'))
         self.setGeometry(100, 100, 500, 300)
         self._build_menu_bar()
+        self._central_container = QWidget()
+        self._central_container.setLayout(QVBoxLayout())
         self._main_tabs = QTabWidget(self)
-        self.setCentralWidget(self._main_tabs)
+        self._central_container.layout().addWidget(self._main_tabs)
+
+        # self._logging_area = QScrollArea()
+        # self._logging_area.setWidgetResizable(True)
+        # self._logging_area.setMaximumHeight(200)
+        layout = QVBoxLayout()
+        self._logging_collapsible_area = CollapsibleBox(title="LOGGING INFO")
+        self._logging_area = QTextEdit()
+        self._logging_area.setReadOnly(True)
+        self._logging_area.setLineWrapMode(QTextEdit.NoWrap)
+        self._logging_area.setMaximumHeight(200)
+        font = self._logging_area.font()
+        font.setFamily("Consolas")
+        font.setPointSize(12)
+        self._logging_area.setFont(font)
+        layout.addWidget(self._logging_area)
+        self._logging_collapsible_area.set_content_layout(layout)
+        self._central_container.layout().addWidget(self._logging_collapsible_area)
+
+        self.setCentralWidget(self._central_container)
         self._zmx_file_tab = QWidget()
         self._zmx_file_tab.setLayout(QVBoxLayout())
         self._task_file_tab = QWidget()
@@ -78,8 +101,20 @@ class UIMainWindow(QMainWindow):
         self._zemax_files_tabs =  UIZemaxFileView()  # QTabWidget()
         self._zmx_file_tab.layout().addWidget(self._zemax_files_tabs)
         scheme = ZFile()
-        scheme.load(src_file)
-        self._zemax_files_tabs.setup(scheme)
+        if scheme.load(src_file):
+            self._logging_area.append(f"Successfully load zemax file at path: {src_file}\n")
+            self._zemax_files_tabs.setup(scheme)
+            # for message in io_log_2d():
+            #     self._logging_area.append(f"{message}\n")
+#
+            # for message in trace_log_2d():
+            #     self._logging_area.append(f"{message}\n")
+#
+            # for message in draw_log_2d():
+            #     self._logging_area.append(f"{message}\n")
+
+        else:
+            self._logging_area.append(f"Failed to load zemax file at path: {src_file}\n")
 
     def _build_menu_bar(self):
         menu_bar = self.menuBar()
@@ -104,76 +139,6 @@ class UIMainWindow(QMainWindow):
 
     def _exit_app(self):
         self.close()
-
-
-PALETTE_KEYS = {"Active": 0,
-                "All": 5,
-                "AlternateBase": 16,
-                "Background": 10,
-                "Base": 9,
-                "BrightText": 7,
-                "Button": 1,
-                "ButtonText": 8,
-                "Current": 4,
-                "Dark": 4,
-                "Disabled": 1,
-                "Foreground": 0,
-                "Highlight": 12,
-                "HighlightedText": 13,
-                "Inactive": 2,
-                "Light": 2,
-                "Link": 14,
-                "LinkVisited": 15,
-                "Mid": 5,
-                "Midlight": 3,
-                "NColorGroups": 3,
-                "NColorRoles": 21,
-                "Normal": 0,
-                "NoRole": 17,
-                "PlaceholderText": 20,
-                "Shadow": 11,
-                "Text": 6,
-                "ToolTipBase": 18,
-                "ToolTipText": 19,
-                "Window": 10,
-                "WindowText": 0}
-
-
-def _load_palette(src: dict) -> QPalette():
-        if 'Palette' not in src:
-            return QPalette()
-        palette = src['Palette']
-        q_palette = QPalette()
-        for key, val in palette.items():
-            if key not in PALETTE_KEYS:
-                continue
-            q_palette.setColor(PALETTE_KEYS[key], QColor(*tuple(int(v) for v in val.values())))
-        return q_palette
-
-
-def load_style(style_src: str, application: QApplication) -> None:
-    with open(style_src, 'rt') as input_file:
-        json_file = json.load(input_file)
-        application.setPalette(_load_palette(json_file))
-        if 'WidgetsStyles' not in json_file:
-            return
-        widgets_styles = json_file['WidgetsFontStyles']
-        style_sheet = []
-        for style in widgets_styles:
-            if 'selector' not in style:
-                continue
-            selector = style['selector']
-            font_family = 'Arial'
-            font_size = '10'
-            font_units = 'pt'
-            if 'font-family' in style:
-                font_family = style['font-family']
-            if 'font-size' in style:
-                font_size = style['font-size']
-            if 'font-units' in style:
-                font_units = style['font-units']
-            style_sheet.append(f"{selector}{{font-family: {font_family}; font-size: {font_size}{font_units};}}")
-        application.setStyleSheet('\n'.join(v for v in style_sheet))
 
 
 def run():

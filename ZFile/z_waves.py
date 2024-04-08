@@ -1,6 +1,5 @@
-from collections import namedtuple
 from typing import Union, List, Dict
-
+from collections import namedtuple
 from .z_file import ZFileRaw
 
 

@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QApplication, QPushButton
 from PyQt5.QtCore import Qt
 from TaskBuilder import SchemeParams, SurfaceParams
-from UI.ui_collapsible_box import CollapsibleBox
-from UI.ui_table import UITableWidget
+from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
+from UI.UITable.ui_table import UITableWidget
 from typing import List, Union
 
 
