@@ -1,10 +1,13 @@
+import random
 import sys
-from typing import Iterable, List
+from typing import Iterable, List, Set
 
+from PyQt5.uic.properties import QtGui
+from PyQt5.QtGui import QPalette, QColor
 from TaskBuilder import SchemeParams, SurfaceParams
 from ZFile import ZFile
 from UI import BitSet32
-from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QApplication, QCheckBox, QScrollArea, QSizePolicy
+from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QApplication, QCheckBox, QScrollArea, QSizePolicy, QFrame
 from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
 from PyQt5.QtCore import Qt
 
@@ -18,8 +21,8 @@ _SETTINGS_BITS = (_ACTIVE_BIT, _COMMON_BIT, _SPOT_BIT, _PSF_BIT, _MTF_BIT)
 
 
 class UITaskListItem(QWidget):
-    _items_ids: set[int] = set()
-    _items_ids_free: set[int] = set()
+    _items_ids: Set[int] = set()
+    _items_ids_free: Set[int] = set()
 
     @staticmethod
     def _get_id() -> int:
@@ -37,6 +40,7 @@ class UITaskListItem(QWidget):
         return check_box
 
     def _toggle_default(self, bit: int, value: bool = None) -> bool:
+        val = self._state.is_bit_set(bit)
         if value is None:
             return self._toggle_default(bit, not self._state.is_bit_set(bit))
         if self._state.is_bit_set(bit) == value:
@@ -83,23 +87,33 @@ class UITaskListItem(QWidget):
 
     @enabled.setter
     def enabled(self, value: bool) -> None:
-        self._active_check_box.setChecked(self._toggle_enable(value))
+        if self._active_check_box.isChecked() == value:
+            return
+        self._active_check_box.setChecked(value)
 
     @compute_common.setter
     def compute_common(self, value: bool) -> None:
-        self._common_check_box.setChecked(self._toggle_default(_COMMON_BIT, value))
+        if self._common_check_box.isChecked() == value:
+            return
+        self._common_check_box.setChecked(value)
 
     @compute_mtf.setter
     def compute_mtf(self, value: bool) -> None:
-        self._mtf_check_box.setChecked(self._toggle_default(_MTF_BIT, value))
+        if self._mtf_check_box.isChecked() == value:
+            return
+        self._mtf_check_box.setChecked(value)
 
     @compute_psf.setter
     def compute_psf(self, value: bool) -> None:
-        self._psf_check_box.setChecked(self._toggle_default(_PSF_BIT, value))
+        if self._psf_check_box.isChecked() == value:
+            return
+        self._psf_check_box.setChecked(value)
 
     @compute_spot.setter
     def compute_spot(self, value: bool) -> None:
-        self._spot_check_box.setChecked(self._toggle_default(_SPOT_BIT, value))
+        if self._spot_check_box.isChecked() == value:
+            return
+        self._spot_check_box.setChecked(value)
 
     def __init__(self, item_name: str = None, parent=None):
         super(UITaskListItem, self).__init__(parent)
@@ -107,6 +121,8 @@ class UITaskListItem(QWidget):
         self._item_id = UITaskListItem._get_id()
         self._state: BitSet32 = BitSet32()
         self._item_settings = CollapsibleBox(title=item_name if item_name else f"item: {self._item_id}")
+        self._item_settings.setStyleSheet(generate_color())
+        self.layout().setContentsMargins(0, 0, 0, 0)
         layout = QVBoxLayout()
         for bit in _SETTINGS_BITS:
             self._state.set_bit(bit)
@@ -115,6 +131,18 @@ class UITaskListItem(QWidget):
         self._psf_check_box    = UITaskListItem.init_check_box('PSF', lambda: self._toggle_default(_PSF_BIT))
         self._mtf_check_box    = UITaskListItem.init_check_box('MTF', lambda: self._toggle_default(_MTF_BIT))
         self._spot_check_box   = UITaskListItem.init_check_box('SPOT', lambda: self._toggle_default(_SPOT_BIT))
+        self._active_check_box.setStyleSheet(generate_color())
+        self._common_check_box.setStyleSheet(generate_color())
+        self._psf_check_box.setStyleSheet(generate_color())
+        self._mtf_check_box.setStyleSheet(generate_color())
+        self._spot_check_box.setStyleSheet(generate_color())
+
+        self._active_check_box. setMinimumHeight(30)
+        self._common_check_box. setMinimumHeight(30)
+        self._psf_check_box.    setMinimumHeight(30)
+        self._mtf_check_box.    setMinimumHeight(30)
+        self._spot_check_box.   setMinimumHeight(30)
+
         layout.addWidget(self._active_check_box)
         layout.addWidget(self._common_check_box)
         layout.addWidget(self._psf_check_box)
@@ -135,15 +163,20 @@ class UITasksList(QScrollArea):
         content = QWidget()
         content.setLayout(QVBoxLayout())
         content.layout().setAlignment(Qt.AlignTop)
+        self.setAlignment(Qt.AlignTop)
         self.setWidget(content)
         self.setWidgetResizable(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setFrameShape(QFrame.NoFrame)
         self._items = []
         for item in items:
-            it =  UITaskListItem(item)
+            it = UITaskListItem(item)
+            color = QColor(*[random.randint(0, 255) for _ in range(3)])
+            it.setStyleSheet(
+                "background-color: {}; color : white;".format(color.name())
+            )
             content.layout().addWidget(it)
             self._items.append(it)
-        content.layout().addStretch()
 
 
 class UITasksListView(QWidget):
@@ -159,6 +192,7 @@ class UITasksListView(QWidget):
         return value
 
     def _toggle_enable(self, value: bool = None) -> bool:
+        val = self._state.is_bit_set(_ACTIVE_BIT)
         if not self._toggle_default(_ACTIVE_BIT, value):
             self._common_check_box.setEnabled(False)
             self._psf_check_box.setEnabled(False)
@@ -262,22 +296,33 @@ class UITasksListView(QWidget):
         self._state: BitSet32 = BitSet32()
         for bit in _SETTINGS_BITS:
             self._state.set_bit(bit)
+        container = QWidget()
+        container.setLayout(QVBoxLayout())
         self._active_check_box = UITaskListItem.init_check_box('ACTIVE', lambda: self._toggle_enable())
         self._common_check_box = UITaskListItem.init_check_box('COMMON', lambda: self._toggle_common())
         self._psf_check_box = UITaskListItem.init_check_box('PSF', lambda: self._toggle_psf())
         self._mtf_check_box = UITaskListItem.init_check_box('MTF', lambda: self._toggle_mtf())
         self._spot_check_box = UITaskListItem.init_check_box('SPOT', lambda: self._toggle_spot())
         self._items_list = UITasksList(items)
-        self.layout().addWidget(self._active_check_box)
-        self.layout().addWidget(self._common_check_box)
-        self.layout().addWidget(self._psf_check_box)
-        self.layout().addWidget(self._mtf_check_box)
-        self.layout().addWidget(self._spot_check_box)
+        container.layout().addWidget(self._active_check_box)
+        container.layout().addWidget(self._common_check_box)
+        container.layout().addWidget(self._psf_check_box)
+        container.layout().addWidget(self._mtf_check_box)
+        container.layout().addWidget(self._spot_check_box)
+        self.layout().addWidget(container)
         self.layout().addWidget(self._items_list)
+        self.layout().setAlignment(Qt.AlignTop)
+        self.layout().setContentsMargins(0,0,0,0)
+
+
+def generate_color() -> str:
+    color = QColor(*[random.randint(0, 255) for _ in range(3)])
+    return "background-color: {}; color : white;".format(color.name())
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = UITasksListView(tuple(f"item: {str(i + 1):>3}" for i in range(16)))
+    window.setStyleSheet(generate_color())
     window.show()
     sys.exit(app.exec_())

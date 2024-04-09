@@ -120,7 +120,13 @@ def collect_and_build_reports(result_dir: str):
         rep.save('.'.join(result.split('.')[:-1]))
 
 
+from Geometry import tracing_3d_test, tracing_2d_test
+
+
 if __name__ == "__main__":
+    tracing_2d_test()
+    tracing_3d_test()
+    exit()
     # TODO fix aperture issues
     build_matrices()
     #

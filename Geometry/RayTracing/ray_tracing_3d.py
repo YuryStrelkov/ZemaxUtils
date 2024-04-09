@@ -246,13 +246,13 @@ def draw_scheme_3d(surfaces_r: Iterable[float],  # список поверхно
                 x, y, z = build_shape_3d(r1, a1, t1, steps)
                 axis.plot_surface(x, y, z, linewidths=0.0, antialiased=False, color='green')
             if p1[MATERIAL] == SOURCE_OBJECT:
-                x, y, z  = build_shape_3d(r1, a1, t1, steps)
+                x, y, z = build_shape_3d(r1, a1, t1, steps)
                 axis.plot_surface(x, y, z, linewidths=0.0, antialiased=False, color='red')
             if p1[MATERIAL] == DUMMY_OBJECT:
                 x, y, z = build_shape_3d(r1, a1, t1, steps)
                 axis.plot_surface(x, y, z, linewidths=0.0, antialiased=False, color='grey')
             if p1[MATERIAL] == MIRROR:
-                x, y, z  = build_shape_3d(r1, a1, t1, steps)
+                x, y, z = build_shape_3d(r1, a1, t1, steps)
                 axis.plot_surface(x, y, z, linewidths=0.0, antialiased=False, color='white')
                 continue
             if p1[MATERIAL] != GLASS:

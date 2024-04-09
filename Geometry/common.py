@@ -36,7 +36,6 @@ def _numba_error_decorator(func):
 
 
 class CustomDecorator:
-
     def __init__(self, f):
         self.f = f
 
@@ -61,7 +60,7 @@ except ImportError as err:
     fast_math      = CustomDecorator(_numba_error_decorator)
     parallel       = CustomDecorator(_numba_error_decorator)
     print(f"ImportError:: {err}")
-    input("press any key...")
+    # input("press any key...")
 
 
 def assert_version(version_major: int, version_minor: int) -> bool:

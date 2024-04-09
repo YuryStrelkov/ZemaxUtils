@@ -1,4 +1,4 @@
-from ..common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY
+from ..common import NUMERICAL_FORMAT_4F as _4F, DEG_TO_RAD, NUMERICAL_ACCURACY, DATA_CLASS_INSTANCE_ARGS
 from ..Vectors.vector2 import Vector2
 from ..Vectors.vector3 import Vector3
 from dataclasses import dataclass
@@ -7,7 +7,7 @@ import numpy as np
 import math
 
 
-@dataclass(slots=True)
+@dataclass(**DATA_CLASS_INSTANCE_ARGS)
 class Matrix3:
     """
     mutable Matrix 3d
