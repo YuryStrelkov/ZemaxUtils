@@ -38,13 +38,13 @@ class CollapsibleBox(QtWidgets.QWidget):
         if curr_layout:
             curr_layout.deleteLater()
         self.content_area.setLayout(layout)
-        collapsed_height = max(self.sizeHint().height() - self.content_area.maximumHeight(), 0)
+        collapsed_height = self.sizeHint().height() - self.content_area.maximumHeight()
         content_height = layout.sizeHint().height()
         for index in range(self.toggle_animation.animationCount()):
             animation = self.toggle_animation.animationAt(index)
             animation.setDuration(500)
             animation.setStartValue(collapsed_height)
-            animation.setEndValue(max(collapsed_height + content_height, 0))
+            animation.setEndValue(collapsed_height + content_height)
 
         content_animation = self.toggle_animation.animationAt(self.toggle_animation.animationCount() - 1)
         content_animation.setDuration(500)
@@ -60,7 +60,6 @@ if __name__ == "__main__":
 
     w = QtWidgets.QMainWindow()
     w.setCentralWidget(QtWidgets.QWidget())
-    # dock = QtWidgets.QDockWidget("Collapsible Demo")
     dock = QtWidgets.QDockWidget("Collapsible Demo")
     dock.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
     w.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)

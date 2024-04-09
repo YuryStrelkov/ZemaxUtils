@@ -13,5 +13,5 @@ from .UICollapsible import CollapsibleBox
 from .UITable import UITableWidget
 from .z_draw import render_scheme_preview
 from .ui_logger import setup_logger
-
+from .bitset32 import *
 setup_logger()

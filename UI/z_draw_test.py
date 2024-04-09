@@ -1,13 +1,13 @@
 from TaskBuilder import SchemeParams, SurfaceParams
-from UI.z_draw import test
 from ZFile import ZFile
+from UI.z_draw import test
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 
 
 def tri_surf_test():
-    plt.style.use('_mpl-gallery')
+    # plt.style.use('_mpl-gallery')
 
     n_radii = 8
     n_angles = 36
