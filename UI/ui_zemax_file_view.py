@@ -35,12 +35,17 @@ class UIZemaxFileView(QScrollArea):
         self._scheme_waves = CollapsibleBox(title="SCHEME WAVES")
         self._scheme_surfaces = CollapsibleBox(title="SCHEME SURFACES")
         self._scheme_extra_data = CollapsibleBox(title="SCHEME EXTRA DATA")
+        self._label = QLabel("\nParams of zemax scheme ... \n")
+        content.layout().addWidget(self._label)
         content.layout().addWidget(self._scheme_preview)
         content.layout().addWidget(self._scheme_common_info)
         content.layout().addWidget(self._scheme_fields)
         content.layout().addWidget(self._scheme_waves)
         content.layout().addWidget(self._scheme_surfaces)
         content.layout().addWidget(self._scheme_extra_data)
+
+    def set_label_test(self, text: str) -> None:
+        self._label.setText(f"\nParams of zemax scheme \"{text}\" \n")
 
     def setup(self, content: ZFile):
         self.set_scheme_preview(content)
@@ -71,6 +76,7 @@ class UIZemaxFileView(QScrollArea):
             # self._scheme_preview.set_content_layout(UIZemaxFileView._info_label("No preview data..."))
             self._scheme_preview.layout().addWidget(UIZemaxFileView._info_label("No preview data..."))
             return self
+        self.set_label_test(scheme.name.params[0])
         sc = MplCanvas()
         toolbar = NavigationToolbar(sc)
         render_scheme_preview(scheme, axis=sc.axes)
