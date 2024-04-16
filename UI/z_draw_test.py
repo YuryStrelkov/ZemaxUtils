@@ -1,9 +1,13 @@
 from TaskBuilder import SchemeParams, SurfaceParams
-from ZFile import ZFile
+from UI import UIImageWidget
 from UI.z_draw import test
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
+import sys
+from UI.UIStyle import load_style
+from ZFile import ZFile
 
 
 def tri_surf_test():
@@ -32,8 +36,23 @@ def tri_surf_test():
     plt.show()
 
 
+def ui_items_test():
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    load_style('../dark_theme_palette.json', app)
+    container = QWidget()
+    container.setLayout(QVBoxLayout())
+    container.layout().addWidget(UIImageWidget("image1.jpg"))
+    container.setMinimumWidth(0)
+    container.setMinimumHeight(0)
+    container.show()
+    # window = UIMainWindow()
+    sys.exit(app.exec())
+
+
 if __name__ == '__main__':
-    tri_surf_test()
+    ui_items_test()
+    # tri_surf_test()
     # mirror_trace_test()
     # exit()
     # lens_trace_test()
