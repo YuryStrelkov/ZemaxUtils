@@ -149,25 +149,25 @@ class UITaskListItem(QWidget):
         layout.addWidget(self._spot_check_box)
         self._item_settings.set_content_layout(layout)
         self.layout().addWidget(self._item_settings)
+
     @property
     def show_button(self) -> QToolButton:
         return self._item_settings.toggle_button
 
 
 class UITasksList(QScrollArea):
-
     @property
     def list_items(self) -> List[UITaskListItem]:
         return self._items
 
     def __init__(self, items: Iterable[str], parent=None):
         super(UITasksList, self).__init__(parent)
+        self.setWidgetResizable(True)
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
         self.content.layout().setAlignment(Qt.AlignTop)
         self.setAlignment(Qt.AlignTop)
         self.setWidget(self.content)
-        self.setWidgetResizable(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setFrameShape(QFrame.NoFrame)
         self._items: List[UITaskListItem] = []

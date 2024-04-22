@@ -1,12 +1,12 @@
-import json
+import os.path
+from typing import List
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget, QTextEdit
-from PyQt5.QtGui import QIcon, QPalette, QColor
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget, QTextEdit
 import sys
-
 from TaskBuilder import SchemeParams
 from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
 from UI.UIStyle import load_style
+from UI.io_utils import collect_files_via_dir
 from UI.ui_task_file_view import UITaskFileView, UITaskFileViewsList
 from UI.ui_zemax_file_view import UIZemaxFileView
 from ZFile import ZFile
@@ -23,11 +23,37 @@ class UITaskFileTab(QWidget):
         self._task_file_ui.setup(content)
 
 
+class ZemaxUtilsSession:
+    def __init__(self):
+        self._zemax_file = ZFile()
+        self._tasks_files = None
+
+    @property
+    def zmx_file(self) -> ZFile:
+        return self._zemax_file
+
+    @property
+    def tasks_files(self) -> List[SchemeParams]:
+        return self._tasks_files
+
+    def load_task_file(self, src_file: str):
+        if not os.path.exists(src_file):
+            return False
+        if os.path.isdir(src_file):
+            files = collect_files_via_dir(src_file, 'json')
+            self._tasks_files = SchemeParams.read_and_merge(files)
+        else:
+            self._tasks_files = SchemeParams.read(src_file)
+        return len(self._tasks_files) != 0
+
+    def load_zmx_file(self, src_file: str) -> bool:
+        return self._zemax_file.load(src_file)
+
+
 class UIMainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('MainWindow')
-        self.setWindowIcon(QIcon('./assets/editor.png'))
         self.setGeometry(100, 100, 500, 300)
         self._build_menu_bar()
         self._central_container = QWidget()
@@ -35,9 +61,6 @@ class UIMainWindow(QMainWindow):
         self._main_tabs = QTabWidget(self)
         self._central_container.layout().addWidget(self._main_tabs)
 
-        # self._logging_area = QScrollArea()
-        # self._logging_area.setWidgetResizable(True)
-        # self._logging_area.setMaximumHeight(200)
         layout = QVBoxLayout()
         self._logging_collapsible_area = CollapsibleBox(title="LOGGING INFO")
         self._logging_area = QTextEdit()
@@ -63,28 +86,8 @@ class UIMainWindow(QMainWindow):
         self._tasks_files_tabs = None
         self.create_task_file_tabs()
         self.create_zemax_file_tabs()
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage('Status :: no-status')
+        self._session = ZemaxUtilsSession()
         self.show()
-
-    def cretae_task_file_tab(self, content: SchemeParams):
-        """Create the General page UI."""
-        tab    = QWidget()
-        tab.setLayout(QVBoxLayout())
-        scheme_tab = UITaskFileTab()
-        scheme_tab.setup(content)
-        tab.layout().addWidget(scheme_tab)  # QLabel("TAB"))
-        return tab
-
-    def cretae_zemax_file_tab(self, content: SchemeParams):
-        """Create the General page UI."""
-        tab    = QWidget()
-        tab.setLayout(QVBoxLayout())
-        scheme_tab = UITaskFileTab()
-        scheme_tab.setup(content)
-        tab.layout().addWidget(scheme_tab)  # QLabel("TAB"))
-        return tab
 
     def create_task_file_tabs(self, src_file: str = "../ZemaxSchemesSettings/combined_params.json"):
         if self._tasks_files_tabs:
@@ -115,6 +118,25 @@ class UIMainWindow(QMainWindow):
 
         else:
             self._logging_area.append(f"Failed to load zemax file at path: {src_file}\n")
+
+    def _load_tasks(self, src_file: str = "../ZemaxSchemesSettings/combined_params.json") -> bool:
+        if not self._session.load_task_file(src_file):
+            return False
+        if self._tasks_files_tabs:
+            self._tasks_files_tabs.deleteLater()
+        self._tasks_files_tabs =  UITaskFileViewsList()  # QTabWidget()
+        self._task_file_tab.layout().addWidget(self._tasks_files_tabs)
+        self._tasks_files_tabs.setup(self._session.tasks_files)
+        return True
+
+    def _load_zm_file(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
+        if not self._session.load_zmx_file(src_file):
+            return False
+        if self._zemax_files_tabs:
+            self._zmx_file_tab.layout().removeWidget(self._zemax_files_tabs)
+        self._zemax_files_tabs = UIZemaxFileView()  # QTabWidget()
+        self._zmx_file_tab.layout().addWidget(self._zemax_files_tabs)
+        self._zemax_files_tabs.setup(self._session.zmx_file)
 
     def _build_menu_bar(self):
         menu_bar = self.menuBar()
