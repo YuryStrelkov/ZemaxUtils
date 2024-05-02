@@ -1,10 +1,11 @@
 import os.path
-from typing import List
+from typing import List, Union
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget, QTextEdit
 import sys
 from TaskBuilder import SchemeParams
 from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
+from UI.UIFileDialogs import UIFileDialogs
 from UI.UIStyle import load_style
 from UI.io_utils import collect_files_via_dir
 from UI.ui_task_file_view import UITaskFileView, UITaskFileViewsList
@@ -36,15 +37,14 @@ class ZemaxUtilsSession:
     def tasks_files(self) -> List[SchemeParams]:
         return self._tasks_files
 
-    def load_task_file(self, src_file: str):
-        if not os.path.exists(src_file):
-            return False
-        if os.path.isdir(src_file):
-            files = collect_files_via_dir(src_file, 'json')
-            self._tasks_files = SchemeParams.read_and_merge(files)
-        else:
+    def load_task_file(self, src_file: Union[str, List[str]]):
+        if isinstance(src_file, str):
             self._tasks_files = SchemeParams.read(src_file)
-        return len(self._tasks_files) != 0
+            return len(self._tasks_files) != 0
+        if isinstance(src_file, List):
+            self._tasks_files = SchemeParams.read_and_merge(src_file)
+            return len(self._tasks_files) != 0
+        raise ValueError(f"Unknown type \"{type(src_file)}\" of task files paths...")
 
     def load_zmx_file(self, src_file: str) -> bool:
         return self._zemax_file.load(src_file)
@@ -89,7 +89,9 @@ class UIMainWindow(QMainWindow):
         self._session = ZemaxUtilsSession()
         self.show()
 
-    def create_task_file_tabs(self, src_file: str = "../ZemaxSchemesSettings/combined_params.json"):
+    def create_task_file_tabs(self, src_file: str = None):  # "../ZemaxSchemesSettings/combined_params.json"):
+        if not src_file:
+            return
         if self._tasks_files_tabs:
             self._tasks_files_tabs.deleteLater()
         self._tasks_files_tabs =  UITaskFileViewsList()  # QTabWidget()
@@ -97,12 +99,14 @@ class UIMainWindow(QMainWindow):
         scheme = SchemeParams.read(src_file)
         self._tasks_files_tabs.setup(scheme)
 
-    def create_zemax_file_tabs(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
+    def create_zemax_file_tabs(self, src_file: str = None):  # "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
         if self._zemax_files_tabs:
             self._zmx_file_tab.layout().removeWidget(self._zemax_files_tabs)
 
         self._zemax_files_tabs =  UIZemaxFileView()  # QTabWidget()
         self._zmx_file_tab.layout().addWidget(self._zemax_files_tabs)
+        if not src_file:
+            return
         scheme = ZFile()
         if scheme.load(src_file):
             self._logging_area.append(f"Successfully load zemax file at path: {src_file}\n")
@@ -129,7 +133,7 @@ class UIMainWindow(QMainWindow):
         self._tasks_files_tabs.setup(self._session.tasks_files)
         return True
 
-    def _load_zm_file(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
+    def _load_zmx_file(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
         if not self._session.load_zmx_file(src_file):
             return False
         if self._zemax_files_tabs:
@@ -143,8 +147,8 @@ class UIMainWindow(QMainWindow):
         file_menu = menu_bar.addMenu('&File')
         help_menu = menu_bar.addMenu('&Help')
         file_menu.addAction('Open Settings File', lambda: print('not done yet...'))
-        file_menu.addAction('Open Zemax File', lambda: print('not done yet...'))
-        file_menu.addAction('Open Task', lambda: print('not done yet...'))
+        file_menu.addAction('Open Zemax File', lambda: self._load_zmx_file(UIFileDialogs.open_file_name_dialog({'Zemax File': "zmx"})))
+        file_menu.addAction('Open Task', lambda: self._load_tasks(UIFileDialogs.open_file_names_dialog({'JSON File': "json"})))
         file_menu.addAction('Save Task', lambda: print('not done yet...'))
         file_menu.addAction('Run Task', lambda: print('not done yet...'))
         file_menu.addAction('Exit', lambda: self._exit_app())

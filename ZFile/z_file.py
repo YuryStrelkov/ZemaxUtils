@@ -63,22 +63,29 @@ class ZFile:
     def load(self, file_path: str) -> bool:
         if file_path is None:
             return False
-        _zf: ZFileRaw = ZFileRaw(file_path)
-        if _zf is None:
+        try:
+            _zf: ZFileRaw = ZFileRaw(file_path)
+            if _zf is None:
+                return False
+            self._fields = ZFields(_zf)
+            self._waves = ZWaves(_zf)
+            for v_id, v in _zf.header_params.items():
+                if v_id in ZFile._NO_FIELDS:
+                    continue
+                self._header_params.update({v_id: ZFileField(v_id + " " + v[0])})
+            for v_id, v in _zf.footer_params.items():
+                if v_id in ZFile._NO_FIELDS:
+                    continue
+                self._footer_fields.update({v_id: ZFileField(v_id + " " + v[0])})
+            for v_id, v in _zf.surfaces.items():
+                self._surfaces.update({v_id: ZSurface(v)})
+            return True
+        except AssertionError as er:
             return False
-        self._fields = ZFields(_zf)
-        self._waves = ZWaves(_zf)
-        for v_id, v in _zf.header_params.items():
-            if v_id in ZFile._NO_FIELDS:
-                continue
-            self._header_params.update({v_id: ZFileField(v_id + " " + v[0])})
-        for v_id, v in _zf.footer_params.items():
-            if v_id in ZFile._NO_FIELDS:
-                continue
-            self._footer_fields.update({v_id: ZFileField(v_id + " " + v[0])})
-        for v_id, v in _zf.surfaces.items():
-            self._surfaces.update({v_id: ZSurface(v)})
-        return True
+        except ValueError as er:
+            return False
+        except KeyError as er:
+            return False
 
     def contains_surf(self, surf_id: int) -> bool:
         assert isinstance(surf_id, int)

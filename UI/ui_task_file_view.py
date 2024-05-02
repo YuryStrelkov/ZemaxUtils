@@ -95,8 +95,10 @@ class UITaskFileView(QScrollArea):
         params: List[SurfaceParams] = scheme.surf_params
         params_t = []
         for i, p in enumerate(params):
-            params_t.append([('surf_n', i)])
-            params_t[-1].extend((f"Zernike {i}", z) for i, z in enumerate(p.zernike))
+            pars = [('surf_n', i)]
+            if p.zernike:
+                pars.extend((f"Zernike {i}", z) for i, z in enumerate(p.zernike))
+            params_t.append(pars)
         layout = QVBoxLayout()
         layout.addWidget(UITableWidget.make_table_from_iterable(params_t))
         self._scheme_extra_data.set_content_layout(layout)
