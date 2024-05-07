@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette, QColor
+from typing import TextIO, Union
 import json
 
-from UI.ui_logger import logger
+LOGGING_STREAM: Union[TextIO, None] = None
 
 PALETTE_KEYS = {"Active": 0,
                 "All": 5,
@@ -50,10 +51,10 @@ def _load_palette(src: dict) -> QPalette():
         try:
             q_palette.setColor(PALETTE_KEYS[key], QColor(*tuple(int(v) for v in val.values())))
         except ValueError as err:
-            logger.error(f"load pallet:  {err}")
+            print(f"load pallet:  {err}", file=LOGGING_STREAM)
             q_palette.setColor(PALETTE_KEYS[key], QColor(120, 130, 140))
         except RuntimeError as err:
-            logger.error(f"load pallet:  {err}")
+            print(f"load pallet:  {err}", file=LOGGING_STREAM)
             q_palette.setColor(PALETTE_KEYS[key], QColor(120, 130, 140))
     return q_palette
 
@@ -63,28 +64,32 @@ def _font_setup(*value: str) -> str:
 
 
 def load_style(style_src: str, application: QApplication) -> None:
-    with open(style_src, 'rt') as input_file:
-        json_file = json.load(input_file)
-        application.setPalette(_load_palette(json_file))
-        if 'WidgetsStyles' in json_file:
-            widgets_styles = json_file['WidgetsFontStyles']
-            application.setStyleSheet(
-                '\n'.join(_font_setup(*tuple(v[key] for key in FONT_KEYS if key in v)) for v in widgets_styles))
-        if 'ApplicationStyles' in json_file:
-            app_font = json_file['ApplicationStyles']
-            font = application.font()
-            font.setFamily(app_font["font-family"] if "font-family" in app_font else "Consolas" )
-            if "font-units" not in app_font:
-                font.setPointSize(int(app_font["font-size"]) if "font-size" in app_font else 12 )
-            else:
-                font_units = app_font["font-units"]
-                try:
-                    if font_units == "pt":
-                        font.setPointSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
-                    elif font_units == "px":
-                        font.setPixelSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
-                    else:
-                        font.setPointSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
-                except ValueError as err:
-                    logger.error(f"load_style: font_units : {err}")
-            application.setFont(font)
+    try:
+        with open(style_src, 'rt') as input_file:
+            json_file = json.load(input_file)
+            application.setPalette(_load_palette(json_file))
+            if 'WidgetsStyles' in json_file:
+                widgets_styles = json_file['WidgetsFontStyles']
+                application.setStyleSheet(
+                    '\n'.join(_font_setup(*tuple(v[key] for key in FONT_KEYS if key in v)) for v in widgets_styles))
+            if 'ApplicationStyles' in json_file:
+                app_font = json_file['ApplicationStyles']
+                font = application.font()
+                font.setFamily(app_font["font-family"] if "font-family" in app_font else "Consolas")
+                if "font-units" not in app_font:
+                    font.setPointSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
+                else:
+                    font_units = app_font["font-units"]
+                    try:
+                        if font_units == "pt":
+                            font.setPointSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
+                        elif font_units == "px":
+                            font.setPixelSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
+                        else:
+                            font.setPointSize(int(app_font["font-size"]) if "font-size" in app_font else 12)
+                    except ValueError as err:
+                        print(f"load_style: font_units : {err}", file=LOGGING_STREAM)
+                application.setFont(font)
+    except FileNotFoundError:
+        print(f"No such file or directory: \"{style_src}\"")
+

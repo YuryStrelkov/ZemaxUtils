@@ -1,13 +1,12 @@
-from TaskBuilder import SchemeParams, SurfaceParams
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
+from UI.UIStyle import load_style
+import matplotlib.pyplot as plt
 from UI import UIImageWidget
 from UI.z_draw import test
-import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib import cm
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
-import sys
-from UI.UIStyle import load_style
 from ZFile import ZFile
+import numpy as np
+import sys
 
 
 def tri_surf_test():
@@ -39,7 +38,7 @@ def tri_surf_test():
 def ui_items_test():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    load_style('../dark_theme_palette.json', app)
+    load_style('dark_theme_palette.json', app)
     container = QWidget()
     container.setLayout(QVBoxLayout())
     container.layout().addWidget(UIImageWidget("image1.jpg"))

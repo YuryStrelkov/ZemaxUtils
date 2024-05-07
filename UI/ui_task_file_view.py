@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QApplication, QSizePolicy, QSplitter
-from PyQt5.QtCore import Qt
 from TaskBuilder import SchemeParams, SurfaceParams
-from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
-from UI.UITable.ui_table import UITableWidget
+from UI.ui_task_list_item import UITasksListView
 from typing import List, Union
-from ui_task_list_item import UITasksListView
+from UI import CollapsibleBox
+from UI import UITableWidget
+from PyQt5.QtCore import Qt
 
 
 class UITaskFileView(QScrollArea):

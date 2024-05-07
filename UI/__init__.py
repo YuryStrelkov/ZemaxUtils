@@ -11,7 +11,12 @@ from .UIWidgetsUtils import init_mat_4
 from .UIImage import UIImageWidget
 from .UICollapsible import CollapsibleBox
 from .UITable import UITableWidget
+from .UIStyle import load_style
+from .UIFileDialogs import UIFileDialogs
 from .z_draw import render_scheme_preview
-from .ui_logger import setup_logger
+from .ui_task_file_view import UITaskFileView, UITaskFileViewsList
+from .ui_task_list_item import UITaskListItem, UITasksList, UITasksListView
+from .ui_text_input_form import UITextInputForm
+from .ui_zemax_file_view import UIZemaxFileView
+from .ui_main_window import UIMainWindow
 from .bitset32 import *
-setup_logger()

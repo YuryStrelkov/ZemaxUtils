@@ -1,14 +1,11 @@
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QCheckBox, QScrollArea, QSizePolicy, QFrame, QToolButton
+from typing import Iterable, List, Set, Callable
+from UI.bitset32 import BitSet32
+from PyQt5.QtGui import QColor
+from UI import CollapsibleBox
+from PyQt5.QtCore import Qt
 import random
 import sys
-from typing import Iterable, List, Set, Callable
-
-from PyQt5.QtGui import QPalette, QColor
-from TaskBuilder import SchemeParams, SurfaceParams
-from ZFile import ZFile
-from UI import BitSet32
-from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QApplication, QCheckBox, QScrollArea, QSizePolicy, QFrame, QToolButton
-from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
-from PyQt5.QtCore import Qt
 
 _ACTIVE_BIT = 0
 _COMMON_BIT = 1
@@ -114,12 +111,17 @@ class UITaskListItem(QWidget):
             return
         self._spot_check_box.setChecked(value)
 
+    def on_delete_callback_register(self, callback=None):
+        if callback:
+            self._item_settings.toggle_close.addAction(callback)
+
     def __init__(self, item_name: str = None, parent=None):
         super(UITaskListItem, self).__init__(parent)
         self.setLayout(QVBoxLayout())
         self._item_id = UITaskListItem._get_id()
         self._state: BitSet32 = BitSet32()
         self._item_settings = CollapsibleBox(title=item_name if item_name else f"item: {self._item_id}", close_btn=True)
+        self._item_settings.toggle_close.clicked.connect(lambda: self.deleteLater())
         # self._item_settings.setStyleSheet(generate_color())
         self.layout().setContentsMargins(0, 0, 0, 0)
         layout = QVBoxLayout()

@@ -1,10 +1,31 @@
 from .fields_params import FieldsParams, load_fields_params
-from typing import Dict, List, Union, Iterable
+from typing import Dict, List, Union, Iterable, Tuple
 from .waves_params import Wave, read_waves
 from .surface_params import SurfaceParams
 from .surface_params import read_surfaces
 import json
 import os
+
+
+_SEPARATOR = '\\'
+
+
+def _collect_files_via_dir(directory: str, ext: str = '*') -> Tuple[str]:
+    assert isinstance(directory, str)
+    directories = [directory]
+    directory_files = []
+    while len(directories) != 0:
+        c_dir = directories.pop()
+        for file in os.listdir(c_dir):
+            c_path = os.path.join(c_dir, file)
+            if os.path.isdir(c_path):
+                directories.append(c_path)
+            if ext == '*':
+                directory_files.append(c_path)
+                continue
+            if os.path.isfile(c_path) and c_path.endswith(ext):
+                directory_files.append(c_path)
+    return tuple(f"{v.replace(_SEPARATOR, '/')}" for v in directory_files)
 
 
 class SchemeParams:
@@ -113,6 +134,8 @@ class SchemeParams:
     def read(file_path: str) -> List['SchemeParams']:
         if not os.path.exists(file_path):
             return []
+        if os.path.isdir(file_path):
+            return SchemeParams.read_and_merge(_collect_files_via_dir(file_path, 'json'))
         with open(file_path, "rt") as output_file:
             json_file = json.load(output_file)
             if json_file is None:

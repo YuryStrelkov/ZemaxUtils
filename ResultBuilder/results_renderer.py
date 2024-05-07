@@ -1,4 +1,3 @@
-from Geometry import poly_fit, poly_regression
 from .result_visual_settings import ResultVisualSettings
 from .result_components import MTFResponse
 from .result_components import SpotDiagram
@@ -8,6 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from .result_file import ResultFile
 from .utils import color_map_quad
+from Geometry import poly_fit
 import numpy as np
 
 

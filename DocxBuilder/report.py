@@ -1,17 +1,15 @@
-import os.path
-import numpy as np
+from ResultBuilder import ResultFile, draw_spot, ResultVisualSettings, draw_pos_from_angle, draw_psf, draw_mtf
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING
-from docx.shared import Inches, Cm
+from docx.enum.section import WD_ORIENTATION
+from matplotlib import pyplot as plt
+from Geometry import poly_regression
 from typing import Union, Tuple
+from docx.shared import Cm
 from docx.shared import Pt
 from docx import Document
-from matplotlib import pyplot as plt
-from docx.enum.section import WD_ORIENTATION
-from Geometry import poly_regression, linear_regression, Vector2
-from ResultBuilder import ResultFile, draw_spot, ResultVisualSettings, draw_pos_from_angle, draw_psf, \
-    draw_psf_cross_section, draw_mtf
-from docx.enum.section import WD_SECTION_START, WD_ORIENTATION
+import numpy as np
+import os.path
 
 
 class Report:

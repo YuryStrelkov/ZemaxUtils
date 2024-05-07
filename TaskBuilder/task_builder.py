@@ -1,5 +1,5 @@
+from typing import List, Tuple, Union, Dict, Generator
 from .scheme_params import SchemeParams
-from typing import List, Tuple, Union
 from ZFile import ZFile
 from os import path
 import subprocess
@@ -74,16 +74,41 @@ class TaskBuilder:
     def __init__(self, z_file_proto_src: str = None, task_file_scr: str = None):
         self._z_file_proto_src: str = ""
         self._task_file_src: str = ""
-        self._z_file: Union[ZFile, None] = None
-        self._task_args: Union[List[SchemeParams], None] = None
         self._task_working_directory: str = ""
         self._task_results_directory: str = ""
-        self.z_file_proto_src = z_file_proto_src
-        self.task_file_src = task_file_scr
+        self._z_file: Union[ZFile, None] = None
+        self._task_args: Union[Dict[int, SchemeParams], None] = None
+        if z_file_proto_src:
+            self.z_file_proto_src = z_file_proto_src
+        if task_file_scr:
+            self.task_file_src = task_file_scr
 
-    def _combine_task(self, other):
-        if not isinstance(other, TaskBuilder):
+    @property
+    def has_tasks(self) -> bool:
+        return bool(self._task_args)
+
+    @property
+    def has_zemax_file(self) -> bool:
+        return bool(self._z_file)
+
+    @property
+    def task_working_directory(self) -> str:
+        return self._task_working_directory
+
+    @property
+    def task_results_directory(self) -> str:
+        return self._task_results_directory
+
+    @property
+    def tasks(self) -> Generator[SchemeParams, None, None]:
+        if not self.has_tasks:
             return
+        for item in self._task_args.values():
+            yield item
+
+    @property
+    def z_file(self) -> ZFile:
+        return self._z_file
 
     @property
     def z_file_proto_src(self) -> str:
@@ -104,13 +129,15 @@ class TaskBuilder:
         return self._task_file_src
 
     @task_file_src.setter
-    def task_file_src(self, value: str) -> None:
-        if not path.exists(value):
-            return
-        if value == self._task_file_src:
-            return
-        self._task_file_src = value
-        self._task_args = SchemeParams.read(self._task_file_src)
+    def task_file_src(self, value: Union[str, List[str]]) -> None:
+        if isinstance(value, str):
+            self._task_file_src = value
+            self._task_args = {i: v for i, v in enumerate(SchemeParams.read(self._task_file_src))}
+        elif isinstance(value, List):
+            self._task_file_src = value
+            self._task_args = {i: v for i, v in enumerate(SchemeParams.read_and_merge(self._task_file_src))}
+        else:
+            raise ValueError("task file src should be list or single string")
 
     @property
     def is_valid(self) -> bool:
@@ -123,6 +150,12 @@ class TaskBuilder:
         if self._task_args is None:
             return False
         return True
+
+    def remove_task_by_id(self, task_id: int) -> bool:
+        if task_id in self._task_args:
+            del self._task_args[task_id]
+            return True
+        return False
 
     def create_task(self, task_directory: str = None,
                     task_info: int = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF) -> bool:
@@ -160,7 +193,7 @@ class TaskBuilder:
         # with open(self._task_results_directory + "zemax_proto_file.json", "wt"):
         #     pass
 
-        for task in self._task_args:
+        for task in self._task_args.values():
             task_files.append(task.description_short.replace(" ", "_").replace(",", "") + ".zmx")
             self._z_file.apply_settings(task)
             self._z_file.save(self._task_working_directory + task_files[-1])

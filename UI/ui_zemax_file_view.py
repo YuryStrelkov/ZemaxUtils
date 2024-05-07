@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QScrollArea
-from PyQt5.QtCore import Qt
 from UI import render_scheme_preview
-from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
-from UI.UITable.ui_table import UITableWidget
-from ZFile import ZFile
+from UI import CollapsibleBox
+from UI import UITableWidget
+from PyQt5.QtCore import Qt
 import matplotlib as plt
+from ZFile import ZFile
 plt.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure

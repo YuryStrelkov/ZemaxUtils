@@ -1,0 +1,6 @@
+PyQt5~=5.15.9
+matplotlib~=3.7.1
+numpy~=1.25.0
+numba~=0.58.1
+python-docx~=0.8.11
+setuptools~=60.2.0
