@@ -1,12 +1,12 @@
 #  https://www.pythontutorial.net/pyqt/pyqt-qtablewidget/
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QMessageBox, QSizePolicy
 from typing import List, Iterable, Union, Tuple
-#  from TaskBuilder import SurfaceParams
 
 
 class UITableWidget(QTableWidget):
     def __init__(self, parent, colons: int = 0):
         super().__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         self.setColumnCount(colons)
 
     @property
@@ -131,22 +131,6 @@ class UITableWidget(QTableWidget):
                 self._remove_col(indices)
                 return
         self._remove_col(indices)
-
-    # TODO remove
-    # @classmethod
-    # def make_table(cls, scheme: List[SurfaceParams]) -> 'UITableWidget':
-    #     table = cls(None, 0)
-    #     # parent.setCentralWidget(table)
-    #     headers = ('surf_n', 'tilt-x,[rad]', 'tilt-y,[rad]', 'decenter-x,[mm]', 'decenter-y,[mm]', 'aperture,[mm]', 'surf-r,[mm]')
-    #     for header in headers:
-    #         table.append_col(header)
-    #     for surf in scheme:
-    #         params = (surf.surf_n, surf.tilt.x, surf.tilt.y, surf.decenter.y,
-    #                   surf.decenter.y, surf.aperture, 1.0 / surf.curvature)
-    #         table.append_row(tuple(str(v) if isinstance(v, int) else f"{v:>.4}"for v in params))
-    #     table.colons_widths = (15, 100, 100, 100, 100, 100, 100)
-    #     table.rows_heights  = 20
-    #     return table
 
     @classmethod
     def make_table_from_iterable(cls, values: Union[List[Iterable], Tuple[Iterable, ...]],

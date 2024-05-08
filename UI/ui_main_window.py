@@ -1,15 +1,15 @@
-import json
-
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStatusBar, QWidget, QVBoxLayout, QTabWidget, QTextEdit
-from PyQt5.QtGui import QIcon, QPalette, QColor
-import sys
-
-from TaskBuilder import SchemeParams
-from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
-from UI.UIStyle import load_style
-from UI.ui_task_file_view import UITaskFileView, UITaskFileViewsList
-from UI.ui_zemax_file_view import UIZemaxFileView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget, QTextEdit
+from UI import UITaskFileView, UITaskFileViewsList
+from TaskBuilder import SchemeParams, TaskBuilder
+from DocxBuilder.report import Report
+from ResultBuilder import ResultFile
+from UI import UIZemaxFileView
+from UI import CollapsibleBox
+from UI import UIFileDialogs
+from UI import load_style
 from ZFile import ZFile
+import os.path
+import sys
 
 
 class UITaskFileTab(QWidget):
@@ -27,7 +27,6 @@ class UIMainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('MainWindow')
-        self.setWindowIcon(QIcon('./assets/editor.png'))
         self.setGeometry(100, 100, 500, 300)
         self._build_menu_bar()
         self._central_container = QWidget()
@@ -35,9 +34,6 @@ class UIMainWindow(QMainWindow):
         self._main_tabs = QTabWidget(self)
         self._central_container.layout().addWidget(self._main_tabs)
 
-        # self._logging_area = QScrollArea()
-        # self._logging_area.setWidgetResizable(True)
-        # self._logging_area.setMaximumHeight(200)
         layout = QVBoxLayout()
         self._logging_collapsible_area = CollapsibleBox(title="LOGGING INFO")
         self._logging_area = QTextEdit()
@@ -63,30 +59,12 @@ class UIMainWindow(QMainWindow):
         self._tasks_files_tabs = None
         self.create_task_file_tabs()
         self.create_zemax_file_tabs()
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage('Status :: no-status')
+        self._session = TaskBuilder()
         self.show()
 
-    def cretae_task_file_tab(self, content: SchemeParams):
-        """Create the General page UI."""
-        tab    = QWidget()
-        tab.setLayout(QVBoxLayout())
-        scheme_tab = UITaskFileTab()
-        scheme_tab.setup(content)
-        tab.layout().addWidget(scheme_tab)  # QLabel("TAB"))
-        return tab
-
-    def cretae_zemax_file_tab(self, content: SchemeParams):
-        """Create the General page UI."""
-        tab    = QWidget()
-        tab.setLayout(QVBoxLayout())
-        scheme_tab = UITaskFileTab()
-        scheme_tab.setup(content)
-        tab.layout().addWidget(scheme_tab)  # QLabel("TAB"))
-        return tab
-
-    def create_task_file_tabs(self, src_file: str = "../ZemaxSchemesSettings/combined_params.json"):
+    def create_task_file_tabs(self, src_file: str = None):  # "../ZemaxSchemesSettings/combined_params.json"):
+        if not src_file:
+            return
         if self._tasks_files_tabs:
             self._tasks_files_tabs.deleteLater()
         self._tasks_files_tabs =  UITaskFileViewsList()  # QTabWidget()
@@ -94,60 +72,97 @@ class UIMainWindow(QMainWindow):
         scheme = SchemeParams.read(src_file)
         self._tasks_files_tabs.setup(scheme)
 
-    def create_zemax_file_tabs(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
+    def create_zemax_file_tabs(self, src_file: str = None):  # "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX"):
         if self._zemax_files_tabs:
             self._zmx_file_tab.layout().removeWidget(self._zemax_files_tabs)
 
         self._zemax_files_tabs =  UIZemaxFileView()  # QTabWidget()
         self._zmx_file_tab.layout().addWidget(self._zemax_files_tabs)
+        if not src_file:
+            return
         scheme = ZFile()
         if scheme.load(src_file):
             self._logging_area.append(f"Successfully load zemax file at path: {src_file}\n")
             self._zemax_files_tabs.setup(scheme)
             # for message in io_log_2d():
             #     self._logging_area.append(f"{message}\n")
-#
-            # for message in trace_log_2d():
-            #     self._logging_area.append(f"{message}\n")
-#
-            # for message in draw_log_2d():
-            #     self._logging_area.append(f"{message}\n")
+        #
+        # for message in trace_log_2d():
+        #     self._logging_area.append(f"{message}\n")
+        #
+        # for message in draw_log_2d():
+        #     self._logging_area.append(f"{message}\n")
 
         else:
             self._logging_area.append(f"Failed to load zemax file at path: {src_file}\n")
 
+    def _load_tasks(self, src_file: str = "../ZemaxSchemesSettings/combined_params.json") -> None:
+        self._session.task_file_src = src_file
+        if not self._session.has_tasks:
+            return
+        if self._tasks_files_tabs:
+            self._tasks_files_tabs.deleteLater()
+        self._tasks_files_tabs =  UITaskFileViewsList()  # QTabWidget()
+        self._task_file_tab.layout().addWidget(self._tasks_files_tabs)
+        self._tasks_files_tabs.setup([i for i in self._session.tasks])
+
+    def _load_zmx_file(self, src_file: str = "../ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX") -> None:
+        self._session.z_file_proto_src = src_file
+        if not self._session.has_zemax_file:
+            return
+        if self._zemax_files_tabs:
+            self._zmx_file_tab.layout().removeWidget(self._zemax_files_tabs)
+        self._zemax_files_tabs = UIZemaxFileView()  # QTabWidget()
+        self._zmx_file_tab.layout().addWidget(self._zemax_files_tabs)
+        self._zemax_files_tabs.setup(self._session.z_file)
+
+    def _run_task(self) -> None:
+        if not self._session.is_valid:
+            self._logging_area.append(f"Invalid task settings...")
+            self._logging_area.append(f"Zemax file is : \"{self._session.z_file_proto_src}\"")
+            self._logging_area.append(f"Task file or files are: \"{self._session.task_file_src}\"")
+        self._session.run_task()
+
+    def _save_results(self, report_directory: str) -> None:
+        if not self._session.is_valid:
+            return
+        rdir = self._session.task_results_directory
+        files = tuple((os.path.join(rdir, f), f)for f in os.listdir(rdir)if f.endswith('json'))
+        report_directory = report_directory if report_directory != '' else rdir
+        if not os.path.isdir(report_directory):
+            os.mkdir(report_directory)
+        for f_absolute_name, f_name in files:
+            try:
+                results = ResultFile()
+                rep = Report()
+                results.load(f_absolute_name)
+                rep.update(results, True)
+                name = '.'.join(v for v in f_name.split('.')[:-1])
+                rep.save(os.path.join(report_directory, f"{name}.docx"))
+            except Exception as ex:
+                print(f"Report exception : {ex}")
+
     def _build_menu_bar(self):
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu('&File')
-        help_menu = menu_bar.addMenu('&Help')
-        file_menu.addAction('Open Settings File', lambda: print('not done yet...'))
-        file_menu.addAction('Open Zemax File', lambda: print('not done yet...'))
-        file_menu.addAction('Open Task', lambda: print('not done yet...'))
-        file_menu.addAction('Save Task', lambda: print('not done yet...'))
-        file_menu.addAction('Run Task', lambda: print('not done yet...'))
+        # help_menu = menu_bar.addMenu('&Help')
+        file_menu.addAction('Open Zemax File', lambda: self._load_zmx_file(UIFileDialogs.open_file_name_dialog({'Zemax File': "zmx"})))
+        file_menu.addAction('Open Task File', lambda: self._load_tasks(UIFileDialogs.open_file_names_dialog({'JSON File': "json"})))
+        file_menu.addAction('Run Task File', lambda: self._run_task())
+        file_menu.addAction('Make Report File', lambda: self._save_results(UIFileDialogs.save_directory_dialog()))
         file_menu.addAction('Exit', lambda: self._exit_app())
-
-        # mode_menu.addAction(f'SaveFrame(f)', lambda: print('not done yet...'))
-        # mode_menu.addAction('RecordFrames(s)', lambda: print('not done yet...'))
-        # mode_menu.addAction('RecordVideo(r)', lambda: print('not done yet...'))
-        # mode_menu.addAction('Stop(x)', lambda: print('not done yet...'))
-
-        # settings_menu.addAction(f'Load camera settings', lambda: print('not done yet...'))
-        # settings_menu.addAction(f'Save camera settings', lambda: print('not done yet...'))
-        # settings_menu.addAction(f'Load calibration settings', lambda: print('not done yet...'))
-        # settings_menu.addAction(f'Save calibration settings', lambda: print('not done yet...'))
 
     def _exit_app(self):
         self.close()
 
-
-def run():
-    app = QApplication(sys.argv)
-    app.setStyle("Fusion")
-    load_style('../dark_theme_palette.json', app)
-    window = UIMainWindow()
-    sys.exit(app.exec())
+    @staticmethod
+    def run():
+        app = QApplication(sys.argv)
+        app.setStyle("Fusion")
+        load_style('UI/dark_theme_palette.json', app)
+        UIMainWindow()
+        sys.exit(app.exec())
 
 
 if __name__ == '__main__':
-    run()
+    UIMainWindow.run()

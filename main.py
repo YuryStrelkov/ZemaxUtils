@@ -1,10 +1,9 @@
 import os.path
-from typing import List, Tuple
-
+from typing import Tuple
 from DocxBuilder.report import Report
 from ResultBuilder import *
 from TaskBuilder import *
-from ZFile import COMMON_SCHEME_INFO
+from UI import UIMainWindow
 from ZFile.z_file import SCHEME_ALL_CALCULATIONS
 from os.path import isfile, isdir, join
 from os import listdir
@@ -124,9 +123,10 @@ from Geometry import tracing_3d_test, tracing_2d_test
 
 
 if __name__ == "__main__":
+    UIMainWindow.run()
+    exit()
     tracing_2d_test()
     tracing_3d_test()
-    exit()
     # TODO fix aperture issues
     build_matrices()
     #

@@ -1,9 +1,8 @@
-from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from docx.shared import Inches, Cm
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.shared import Cm
 from docx.shared import Pt
 from docx import Document
-import os
 
 image_count = 0
 tables_count = 0

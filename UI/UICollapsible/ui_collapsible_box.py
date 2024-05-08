@@ -1,27 +1,45 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QColor
 
 
 class CollapsibleBox(QtWidgets.QWidget):
-    def __init__(self, title="", parent=None):
+    def __init__(self, title="", parent=None, close_btn: bool = False):
         super(CollapsibleBox, self).__init__(parent)
 
-        self.toggle_button = QtWidgets.QToolButton(text=title, checkable=True, checked=False)
-        self.toggle_button.setStyleSheet("QToolButton { border: none; }")
+        self.toggle_button = QtWidgets.QToolButton(text=title, checkable=True, checked=True)
+        # self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
         self.toggle_button.clicked.connect(self.on_pressed)
         self.toggle_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.toggle_button.setMinimumHeight(25)
+        self.toggle_close = None
+        if close_btn:
+            self.toggle_close = QtWidgets.QToolButton(text='X', checkable=True, checked=True)
+            self.toggle_close.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+            self.toggle_close.setStyleSheet("background-color: {}; color : white;".format(QColor(255, 0, 0).name()))
+            self.toggle_close.setFixedHeight(22)
+            self.toggle_close.setFixedWidth(22)
+
         self.toggle_animation = QtCore.QParallelAnimationGroup(self)
         self.content_area = QtWidgets.QScrollArea(maximumHeight=0, minimumHeight=0)
         self.content_area.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.content_area.setFrameShape(QtWidgets.QFrame.NoFrame)
 
-        lay = QtWidgets.QVBoxLayout(self)
+        container = QtWidgets.QWidget()
+        container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        lay = QtWidgets.QHBoxLayout(container)
         lay.setSpacing(0)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.toggle_button)
-        lay.addWidget(self.content_area)
+        if self.toggle_close:
+            lay.addWidget(self.toggle_close)
+
+        lay1 = QtWidgets.QVBoxLayout(self)
+        lay1.setSpacing(0)
+        lay1.setContentsMargins(0, 0, 0, 0)
+        lay1.addWidget(container)
+        lay1.addWidget(self.content_area)
 
         self.toggle_animation.addAnimation(QtCore.QPropertyAnimation(self, b"minimumHeight"))
         self.toggle_animation.addAnimation(QtCore.QPropertyAnimation(self, b"maximumHeight"))
@@ -73,14 +91,15 @@ if __name__ == "__main__":
     vlay = QtWidgets.QVBoxLayout(content)
     for i in range(3):
         box = CollapsibleBox("Collapsible Box Header-{}".format(i))
+        color = QtGui.QColor(*[random.randint(0, 255) for _ in range(3)])
+        box.setStyleSheet("background-color: {}; color : white;".format(color.name()))
+
         vlay.addWidget(box)
         lay = QtWidgets.QVBoxLayout()
         for j in range(8):
             label = QtWidgets.QLabel("{}".format(j))
             color = QtGui.QColor(*[random.randint(0, 255) for _ in range(3)])
-            label.setStyleSheet(
-                "background-color: {}; color : white;".format(color.name())
-            )
+            label.setStyleSheet( "background-color: {}; color : white;".format(color.name()))
             label.setAlignment(QtCore.Qt.AlignCenter)
             lay.addWidget(label)
 

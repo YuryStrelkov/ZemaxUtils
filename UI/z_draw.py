@@ -1,8 +1,8 @@
-import logging
-import matplotlib.pyplot as plt
 from Geometry import Vector2, Transform2d, draw_scheme_2d, trace_ray_2d
-from ZFile import ZFile
 from Geometry import tracing_3d_test, tracing_2d_test
+import matplotlib.pyplot as plt
+from ZFile import ZFile
+import logging
 
 
 def convert_zemax_file_to_tracer_task(z_file: ZFile):

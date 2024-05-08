@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QApplication, QPushButton
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QApplication, QSizePolicy, QSplitter
 from TaskBuilder import SchemeParams, SurfaceParams
-from UI.UICollapsible.ui_collapsible_box import CollapsibleBox
-from UI.UITable.ui_table import UITableWidget
+from UI.ui_task_list_item import UITasksListView
 from typing import List, Union
+from UI import CollapsibleBox
+from UI import UITableWidget
+from PyQt5.QtCore import Qt
 
 
 class UITaskFileView(QScrollArea):
@@ -14,6 +15,8 @@ class UITaskFileView(QScrollArea):
         content.layout().setAlignment(Qt.AlignTop)
         self.setWidget(content)
         self.setWidgetResizable(True)
+        self._label = QLabel("\nParams list of task ... \n")
+        content.layout().addWidget(self._label)
         self._scheme_common_info = CollapsibleBox(title="SCHEME COMMON")
         self._scheme_surfs_remap = CollapsibleBox(title="SURFACES REMAP")
         self._scheme_fields      = CollapsibleBox(title="SCHEME FIELDS")
@@ -28,6 +31,9 @@ class UITaskFileView(QScrollArea):
         content.layout().addWidget(self._scheme_extra_data)
         content.layout().addStretch()
 
+    def set_label_text(self, text: str) -> None:
+        self._label.setText(f"\nParams of task \"{text}\" \n")
+
     def setup(self, content: SchemeParams):
         self.set_scheme_fields(content)
         self.set_scheme_surfs_remap(content)
@@ -35,6 +41,7 @@ class UITaskFileView(QScrollArea):
         self.set_scheme_surfaces(content)
         self.set_scheme_extra_data(content)
         self.set_scheme_common_info(content)
+        self.set_label_text(content.description_short)
 
     @staticmethod
     def _info_label(label_text: str) -> QVBoxLayout:
@@ -88,8 +95,10 @@ class UITaskFileView(QScrollArea):
         params: List[SurfaceParams] = scheme.surf_params
         params_t = []
         for i, p in enumerate(params):
-            params_t.append([('surf_n', i)])
-            params_t[-1].extend((f"Zernike {i}", z) for i, z in enumerate(p.zernike))
+            pars = [('surf_n', i)]
+            if p.zernike:
+                pars.extend((f"Zernike {i}", z) for i, z in enumerate(p.zernike))
+            params_t.append(pars)
         layout = QVBoxLayout()
         layout.addWidget(UITableWidget.make_table_from_iterable(params_t))
         self._scheme_extra_data.set_content_layout(layout)
@@ -118,20 +127,21 @@ class UITaskFileViewsList(QWidget):
 
     def __init__(self, parent=None):
         super(UITaskFileViewsList, self).__init__(parent)
-        self._schemes_list = QScrollArea()
+        self._schemes_list = UITasksListView()  # QScrollArea()
         self._scheme_view  = UITaskFileView()
         self._scheme_params: Union[List[SchemeParams], None] = None
         self._active_scheme = -1
         self._active_button = None
         self._active_button_style = None
-        layout = QHBoxLayout()
-        layout.addWidget(self._schemes_list)
-        layout.addWidget(self._scheme_view, 1)
-        self._schemes_list_content = QWidget()
-        self._schemes_list.setWidget(self._schemes_list_content)
-        self._schemes_list.setWidgetResizable(True)
-        schemes_list_content_layout = QVBoxLayout(self._schemes_list_content)
-        schemes_list_content_layout.layout().setAlignment(Qt.AlignTop)
+        self._vert_splitter = QSplitter()
+        self._vert_splitter.setLayout(QHBoxLayout())
+        layout = QHBoxLayout(self)
+        self._schemes_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self._schemes_list.setMinimumWidth(0)
+        self._schemes_list.setMaximumWidth(250)
+        self._vert_splitter.layout().addWidget(self._schemes_list)
+        self._vert_splitter.layout().addWidget(self._scheme_view)
+        layout.addWidget(self._vert_splitter)
         self.setLayout(layout)
 
     @staticmethod
@@ -142,23 +152,18 @@ class UITaskFileViewsList(QWidget):
     def _set_active_scheme(self, index: int):
         if index == self._active_scheme:
             return
-        if self._active_button is not None:
-            self._active_button.setChecked(False)
-        self._active_button = self._schemes_list_content.layout().itemAt(index).widget()
         self._active_scheme = index
+        self._vert_splitter.layout().removeWidget(self._scheme_view)
         self._scheme_view.deleteLater()
         self._scheme_view = UITaskFileView()
-        self.layout().addWidget(self._scheme_view, 1)
+        self._vert_splitter.layout().addWidget(self._scheme_view)
         self._scheme_view.setup(self._scheme_params[index])
 
     def _setup_schemes_list(self):
-        UITaskFileViewsList._clear_layout(self._schemes_list_content.layout())
-        for index, schemes in enumerate(self._scheme_params):
-            desc = schemes.description_short
-            btn = QPushButton(f"{index} : {desc if len(desc) < 20 else desc[0:17] + '...'}")
-            btn.setCheckable(True)
-            btn.clicked.connect(UITaskFileViewsList.indices_call_back_wrapper(index, self._set_active_scheme))
-            self._schemes_list_content.layout().addWidget(btn)
+        #  UITaskFileViewsList._clear_layout(self._schemes_list_content.layout())
+        items = (f"{index} : {scheme.description_short if len(scheme.description_short) < 20 else scheme.description_short[0:17] + '...'}" for index, scheme in enumerate(self._scheme_params))
+        call_backs = (UITaskFileViewsList.indices_call_back_wrapper(i, self._set_active_scheme) for i in range(len(self._scheme_params)))
+        self._schemes_list.setup(items, call_backs)
 
     def setup(self, params: List[SchemeParams]):
         self._scheme_params = params
