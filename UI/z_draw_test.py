@@ -32,7 +32,25 @@ def tri_surf_test():
     plt.show()
 
 
+accum = 0
+while True:
+    try:
+        accum += int(input())
+    except ValueError as er:
+        print(f"incorrect input")
+        break
+print(accum)
+
 if __name__ == '__main__':
+    accum = 0
+    while True:
+        try:
+            accum += int(input())
+        except ValueError as er:
+            print(f"incorrect input")
+            break
+    print(accum)
+
     tri_surf_test()
     # mirror_trace_test()
     # exit()
