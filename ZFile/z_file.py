@@ -17,7 +17,8 @@ COMMON_SCHEME_INFO = 1
 SCHEME_SPOT_DIAGRAM = 2
 SCHEME_MTF = 4
 SCHEME_PSF = 8
-SCHEME_ALL_CALCULATIONS = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF
+INCLUDE_ZMX_PROTO = 16
+SCHEME_ALL_CALCULATIONS = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF | INCLUDE_ZMX_PROTO
 
 
 class ZFile:
@@ -146,15 +147,16 @@ class ZFile:
         self._header_params.update({'NOTE': ZFileField(f'NOTE 0 {params.description_long}')})
         self._header_params.update({'NAME': ZFileField(f'NAME {params.description_short}')})
 
-        # if params.waves is not None:
-        #     self._waves = [ZWaves(v.lam, v.weight) for v in params.waves]
+        if params.waves:
+            self._waves = [ZWaves(v.lam, v.weight) for v in params.waves]
 
         remap = params.surf_remap
         for surf in surfaces:
             surf_id = surf.surf_n
-            if remap is not None:
+            if remap:
                 # TODO убрать surf_id + 1
-                surf_id = remap[surf_id + 1] if surf_id + 1 in remap else -1
+                # surf_id = remap[surf_id + 1] if surf_id + 1 in remap else -1
+                surf_id = remap[surf_id] if surf_id in remap else -1
             if not self.contains_surf(surf_id):
                 continue
             surface: ZSurface = self._surfaces[surf_id]

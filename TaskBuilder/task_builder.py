@@ -1,4 +1,5 @@
 from typing import List, Tuple, Union, Dict, Generator
+
 from .scheme_params import SchemeParams
 from ZFile import ZFile
 from os import path
@@ -12,6 +13,7 @@ COMMON_SCHEME_INFO = 1
 SCHEME_SPOT_DIAGRAM = 2
 SCHEME_MTF = 4
 SCHEME_PSF = 8
+INCLUDE_ZMX_PROTO = 16
 
 PRETENDERS_FOR_ZEMAX = ("\\Zemax\\",
                         "\\Program Files\\Zemax\\",
@@ -158,7 +160,8 @@ class TaskBuilder:
         return False
 
     def create_task(self, task_directory: str = None,
-                    task_info: int = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF) -> bool:
+                    task_info: int = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM |
+                                     SCHEME_MTF | SCHEME_PSF | INCLUDE_ZMX_PROTO) -> bool:
         if not self.is_valid:
             return False
         if task_directory is None:
@@ -193,15 +196,21 @@ class TaskBuilder:
         # with open(self._task_results_directory + "zemax_proto_file.json", "wt"):
         #     pass
 
+        if task_info & INCLUDE_ZMX_PROTO == INCLUDE_ZMX_PROTO:
+            z_file_name = 'original_zemax_file.zmx' # self.z_file_proto_src.split('\\')[-1]
+            task_files.append(z_file_name)
+            self._z_file.save(os.path.join(self._task_working_directory, z_file_name))
+
         for task in self._task_args.values():
-            task_files.append(task.description_short.replace(" ", "_").replace(",", "") + ".zmx")
+            name_of_file = task.description_short.replace(" ", "_").replace(",", "")
+            task_files.append(f"{name_of_file}.zmx")
             self._z_file.apply_settings(task)
-            self._z_file.save(self._task_working_directory + task_files[-1])
-            with open(self._task_results_directory + task.description_short.replace(" ", "_").replace(",", "") + ".json", "wt"):
+            self._z_file.save(os.path.join(self._task_working_directory, task_files[-1]))
+            with open(os.path.join(self._task_results_directory, f"{name_of_file}.json"), "wt"):
                 pass
         with open(self._task_working_directory + "SCHEMES_LIST.TXT", "wt") as task_list:
-            # print(r"call script \"READ_AND_COMPUTE.ZMX\"", file=task_list)
-            # print(f"with arg {self._task_working_directory}SCHEMES_LIST.TXT", file=task_list)
+            #  print(r"call script \"READ_AND_COMPUTE.ZMX\"", file=task_list)
+            #  print(f"with arg {self._task_working_directory}SCHEMES_LIST.TXT", file=task_list)
             print(f'root: {self._task_working_directory}', file=task_list)
             print(f'compute_settings: {" ".join("1" if task_info & v == v else "0" for v in (1, 2, 4, 8))}',
                   file=task_list)

@@ -68,10 +68,11 @@ def load_style(style_src: str, application: QApplication) -> None:
         with open(style_src, 'rt') as input_file:
             json_file = json.load(input_file)
             application.setPalette(_load_palette(json_file))
-            if 'WidgetsStyles' in json_file:
+            if 'WidgetsFontStyles' in json_file:
                 widgets_styles = json_file['WidgetsFontStyles']
                 application.setStyleSheet(
                     '\n'.join(_font_setup(*tuple(v[key] for key in FONT_KEYS if key in v)) for v in widgets_styles))
+                print('\n'.join(_font_setup(*tuple(v[key] for key in FONT_KEYS if key in v)) for v in widgets_styles))
             if 'ApplicationStyles' in json_file:
                 app_font = json_file['ApplicationStyles']
                 font = application.font()

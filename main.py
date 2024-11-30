@@ -1,4 +1,5 @@
 import os.path
+import pathlib
 from typing import Tuple
 from DocxBuilder.report import Report
 from ResultBuilder import *
@@ -101,12 +102,17 @@ def build_and_run_task_from_settings_list():
     Создаёт задачу на основе схемы прототипа и списка настроек.
     :return:
     """
-    z_file_src = r"E:\Github\ZemaxUtils\ZemaxUtils\ZemaxSchemes\F_07g_04_Blenda_PI_Zern_Real.zmx"
-    z_task_src = r"E:\GitHub\ZemaxUtils\ZemaxUtils\ZemaxSchemesSettings\combined_params.json"
-    z_task_dir = r"E:\Github\ZemaxUtils\ZemaxUtils\scheme_15_03_2024"
+    z_file_src = os.path.join(os.getcwd(), r"ZemaxSchemes\F_07g_04_Blenda_PI_Fin.zmx")
+    z_task_src = os.path.join(os.getcwd(), r"26-11-2024\500.json")
+    z_task_dir = os.path.join(os.getcwd(), r"26-11-2024\task")
     task = TaskBuilder(z_file_src, z_task_src)
     task.create_task(z_task_dir, SCHEME_ALL_CALCULATIONS)
     # task.run_task()
+    for t in task.tasks:
+        print(len(t.surf_params))
+        for i1, i2 in t.surf_remap.items():
+            if len(t.surf_params) >= i1:
+                print(f"surf {i2:>3} | {1.0 /  t.surf_params[i1 - 1].curvature:>15.3f} | {t.surf_params[i1 - 1].aperture}")
 
 
 def collect_and_build_reports(result_dir: str):
@@ -123,12 +129,14 @@ from Geometry import tracing_3d_test, tracing_2d_test
 
 
 if __name__ == "__main__":
-    UIMainWindow.run()
-    exit()
-    tracing_2d_test()
-    tracing_3d_test()
-    # TODO fix aperture issues
-    build_matrices()
+    # build_and_run_task_from_settings_list()
+    collect_and_build_reports("26-11-2024/task/Task/Results")
+    # UIMainWindow.run()
+    # exit()
+    # tracing_2d_test()
+    # tracing_3d_test()
+    # # TODO fix aperture issues
+    # build_matrices()
     #
     # merge_tasks_from_dir(r"E:\GitHub\ZemaxUtils\ZemaxUtils\ZemaxSchemesSettings\15_03_2024")
     # build_and_run_task_from_settings_list()
@@ -150,7 +158,6 @@ if __name__ == "__main__":
     # build_matrices()
     # exit()
     results = ResultFile()
-
 
     ##################################################
     root_dir = "E:\\Github\\ZemaxUtils\\ZemaxUtils\\Tasks\\"
