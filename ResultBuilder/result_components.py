@@ -1,3 +1,4 @@
+import collections
 from typing import List, Dict, Tuple, Union
 from Geometry import Vector2, Vector3
 from collections import namedtuple
@@ -257,12 +258,22 @@ class AngleToImagePosDistribution(namedtuple("AngleToImagePosDistribution", "WAV
         return 1
 
     @property
-    def x_slice(self):
+    def x_angle(self) -> np.ndarray:
+        return np.linspace(self.AX_MIN, self.AX_MAX, self.N_ANGLES_X) \
+            if abs(self.AX_MAX - self.AX_MIN) > 1e-9 else np.linspace(-5e-5, 5e-5, self.N_ANGLES_X)
+
+    @property
+    def y_angle(self) -> np.ndarray:
+        return np.linspace(self.AY_MIN, self.AY_MAX, self.N_ANGLES_Y) \
+            if abs(self.AY_MAX - self.AY_MIN) > 1e-9 else np.linspace(-5e-5, 5e-5, self.N_ANGLES_Y)
+
+    @property
+    def x_slice(self) -> np.ndarray:
         return np.array([self.POS_PER_ANG[i + self.N_ANGLES_X * self.N_ANGLES_Y // 2].position.x
                          for i in range(self.N_ANGLES_X)])
 
     @property
-    def y_slice(self):
+    def y_slice(self) -> np.ndarray:
         return np.array([self.POS_PER_ANG[i * self.N_ANGLES_X + self.N_ANGLES_Y // 2].position.y
                          for i in range(self.N_ANGLES_Y)])
 
@@ -385,7 +396,7 @@ class MTFResponse(namedtuple("ChiefRay", "FIELD_ID, WAVE_ID, FREQ, TAN, SAG")):
 def read_fields(json_node) -> Union[Dict[int, Field], None]:
     if _FIELDS not in json_node:
         return None
-    fields = {}
+    fields = collections.OrderedDict()
     node = json_node[_FIELDS]
     for n_id, n in enumerate(node):
         try:

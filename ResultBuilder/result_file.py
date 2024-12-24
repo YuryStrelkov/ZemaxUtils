@@ -12,7 +12,8 @@ from .result_components import read_spots
 from .result_components import ChiefRay
 from .result_components import read_mtf
 from .result_components import read_psf
-from typing import List, Dict, Union
+from typing import List, Dict, Union, OrderedDict
+import collections
 from .utils import change_encoding
 from Geometry import Vector2
 import numpy as np
@@ -54,7 +55,7 @@ class ResultFile:
         self.wavelengths_weights = []
         self.wavelengths = []
         self.chief_rays: List[ChiefRay] = []
-        self.fields: Dict[int, Field]  = {}
+        self.fields: OrderedDict[int, Field]  = collections.OrderedDict()
         self.spots: List[SpotDiagram] = []
         self.psf_s: List[PSFDiagram] = []
         self.mtf_s: List[MTFResponse] = []

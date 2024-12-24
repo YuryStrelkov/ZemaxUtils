@@ -179,8 +179,8 @@ class ZFile:
     def create_task(self, task_settings: List[SchemeParams], task_name: str = "Task", task_dir: str = None,
                     task_info: int = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF):
         if task_dir is None:
-            task_dir = os.getcwd() + "\\" + task_name + "\\"
-        results_dir = task_dir + "RESULTS\\" if task_dir.endswith("\\") else task_dir + "\\RESULTS\\"
+            task_dir = os.path.join(os.getcwd(), task_name)
+        results_dir =  os.path.join(task_dir, "RESULTS") # task_dir + "RESULTS\\" if task_dir.endswith("\\") else task_dir + "\\RESULTS\\"
 
         if not os.path.isdir(task_dir):
             os.mkdir(task_dir)

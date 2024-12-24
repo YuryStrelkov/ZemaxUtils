@@ -1,6 +1,9 @@
 import os.path
 import pathlib
 from typing import Tuple
+
+import pylab as p
+
 from DocxBuilder.report import Report
 from ResultBuilder import *
 from TaskBuilder import *
@@ -103,36 +106,55 @@ def build_and_run_task_from_settings_list():
     :return:
     """
     z_file_src = os.path.join(os.getcwd(), r"ZemaxSchemes\F_07g_04_Blenda_PI_Fin.zmx")
-    z_task_src = os.path.join(os.getcwd(), r"26-11-2024\500.json")
-    z_task_dir = os.path.join(os.getcwd(), r"26-11-2024\task")
+    z_task_src = os.path.join(os.getcwd(), r"19-12-2024\0_5700.json")
+    z_task_dir1 = os.path.join(os.getcwd(), r"19-12-2024\task_86-220_sec")
+    z_task_dir2 = os.path.join(os.getcwd(), r"19-12-2024\task_4902-5676_sec")
+
     task = TaskBuilder(z_file_src, z_task_src)
-    task.create_task(z_task_dir, SCHEME_ALL_CALCULATIONS)
-    # task.run_task()
-    for t in task.tasks:
-        print(len(t.surf_params))
-        for i1, i2 in t.surf_remap.items():
-            if len(t.surf_params) >= i1:
-                print(f"surf {i2:>3} | {1.0 /  t.surf_params[i1 - 1].curvature:>15.3f} | {t.surf_params[i1 - 1].aperture}")
+    items1 = {220}  # {86, 100, 130, 160, 175, 190, 220}  # 86-220 sec
+    task.filter_task(lambda v: int(v.description_short) in items1)
+    task.create_task(z_task_dir1, task_info=SCHEME_ALL_CALCULATIONS)  # , tasks_ids=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+    # task = TaskBuilder(z_file_src, z_task_src)
+    # items2 = {4915, 4962, 5007, 5052, 5097, 5152, 5202, 5262, 5307, 5352}  # 4902-5676 sec
+    # task.filter_task(lambda v: int(v.description_short) in items2)
+    # task.create_task(z_task_dir2, task_info=SCHEME_ALL_CALCULATIONS)  # , tasks_ids=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+    task.run_task()
+    # for t in task.tasks:
+    #     print(len(t.surf_params))
+    #     for i1, i2 in t.surf_remap.items():
+    #         if len(t.surf_params) >= i1:
+    #             print(f"surf {i2:>3} | {1.0 /  t.surf_params[i1 - 1].curvature:>15.3f} | {t.surf_params[i1 - 1].aperture}")
 
 
 def collect_and_build_reports(result_dir: str):
     result_files = collect_files_via_dir(result_dir, 'json')
+    # d = os.path.dirname(result_files[0])
+    #  n = os.path.basename(result_files[0])
+    f_name = os.path.join(os.path.dirname(result_files[0]),
+                          '_'.join(os.path.basename(path).split('.')[0] for path in result_files))
+    report_total = Report()
+
     for result in result_files:
-        rep = Report()
+        report = Report()
         results = ResultFile()
         results.load(result)
-        rep.update(results, True)
-        rep.save('.'.join(result.split('.')[:-1]))
-
+        report.update(results, True)
+        report_total.update(results, True)
+        report.save('.'.join(result.split('.')[:-1]))
+    report_total.save(f_name)
 
 from Geometry import tracing_3d_test, tracing_2d_test
 
 
 if __name__ == "__main__":
-    # build_and_run_task_from_settings_list()
-    collect_and_build_reports("26-11-2024/task/Task/Results")
     # UIMainWindow.run()
     # exit()
+
+    build_and_run_task_from_settings_list()
+    collect_and_build_reports("19-12-2024/task_86-220_sec/Task/Results")
+    # collect_and_build_reports("19-12-2024/task/Task/Task/Results")
     # tracing_2d_test()
     # tracing_3d_test()
     # # TODO fix aperture issues
@@ -143,8 +165,7 @@ if __name__ == "__main__":
     # collect_and_build_reports(r"E:\GitHub\ZemaxUtils\ZemaxUtils\scheme_15_03_2024\Task\Results")
     exit()
 
-
-    # ЧТО БЫ ПОСЧИТАТЬ, ЗАПУСТИ ЭТОТ КОД
+    # ЧТО БЫ ПОСЧИТАТЬ, НУЖНО ЗАПУСТИТЬ ЭТОТ КОД
     # build_and_run_task_from_settings_list()
     # exit()
     # А ПОСЛЕ РАСЧТЁТА ЭТОТ
