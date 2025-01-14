@@ -1,14 +1,24 @@
-from collections import namedtuple
-from typing import List
+from typing import List, Tuple, Union, Dict, Any
+import dataclasses
 
 
-class Field(namedtuple('Field', 'angle_x, angle_y, weight, vdx, vdy, vcx, vcy, van')):
+@dataclasses.dataclass(frozen=True)
+class Field:
+    KEYS = ("angle_x", "angle_y", "weight", "vdx", "vdy", "vcx", "vcy", "van")
     """Параметры одного поля для файла настроек"""
-    __slots__ = ()
+    angle_x: float
+    angle_y: float
+    weight: float
+    vdx: float
+    vdy: float
+    vcx: float
+    vcy: float
+    van: float
 
-    def __new__(cls, angle_x: float = 0.0, angle_y: float = 0.0, weight: float = 1.0,
-                vdx: float = 0.0, vdy: float = 0.0, vcx: float = 0.0, vcy: float = 0.0, van: float = 0.0):
-        return super().__new__(cls, angle_x, angle_y, weight, vdx, vdy, vcx, vcy, van)
+    @classmethod
+    def create(cls, angle_x: float = 0.0, angle_y: float = 0.0, weight: float = 1.0,
+               vdx: float = 0.0, vdy: float = 0.0, vcx: float = 0.0, vcy: float = 0.0, van: float = 0.0):
+        return cls(angle_x, angle_y, weight, vdx, vdy, vcx, vcy, van)
 
     def __iter__(self):
         yield "angle_x", self.angle_x
@@ -22,25 +32,22 @@ class Field(namedtuple('Field', 'angle_x, angle_y, weight, vdx, vdy, vcx, vcy, v
 
     @property
     def to_list(self) -> List[float]:
-        return [v for v in self]
+        return [v for _, v in self]
 
     def __str__(self):
-        return f"{{ \"angle_x\" : {self.angle_x}, " \
-               f"\"angle_y\" : {self.angle_x}, " \
-               f"\"weight\" : {self.angle_x}, " \
-               f"\"vdx\" : {self.angle_x}, " \
-               f"\"vdy\" : {self.angle_x}, " \
-               f"\"vcx\" : {self.angle_x}, " \
-               f"\"vcy\" : {self.angle_x}, " \
-               f"\"van\" : {self.angle_x}}}"
+        raw = ",\n".join(f"\"{k}\": {v}" for k, v in self)
+        return f"{{\n{raw}\n}}"
 
 
-class FieldsParams(namedtuple('FieldsParams', 'fields_type, fields')):
+@dataclasses.dataclass(frozen=True)
+class FieldsParams:
     """Параметры полей для файла настроек"""
-    __slots__ = ()
+    fields_type: int
+    fields: Tuple[Field, ...]
 
-    def __new__(cls, fields_type: int = 0, fields: List[Field] = None):
-        return super().__new__(cls, fields_type, fields)
+    @classmethod
+    def create(cls, fields_type: int = 0, fields: Tuple[Field, ...] = None):
+        return cls(fields_type, fields)
 
     def __str__(self):
         if self.fields is None:
@@ -51,24 +58,14 @@ class FieldsParams(namedtuple('FieldsParams', 'fields_type, fields')):
         sep = '\n\t\t\t\t'
         return f"\t\t{{" \
                f"\t\t\t\"fields_type\" : {self.fields_type},\n" \
-               f"\t\t\t\"fields\" : [\n{sep.join(v for v in self.fields)}]\n" \
+               f"\t\t\t\"fields\" : [\n{sep.join(str(v) for v in self.fields)}]\n" \
                f"\n\t\t}}"
 
 
-def load_fields_params(json_node):
+def load_fields_params(json_node: Dict[str, Any]) -> Union['FieldsParams', None]:
     if 'fields' not in json_node:
         return None
     fields = json_node['fields']
     fields_type = int(fields['fields_type']) if 'fields_type' in fields else 0
-    fields_params = []
-    for v in fields['fields']:
-        fields_params.append(Field(float(v['angle_x']) if 'angle_x' in v else 0.0,
-                                   float(v['angle_y']) if 'angle_y' in v else 0.0,
-                                   float(v['weight']) if 'weight' in v else 1.0,
-                                   float(v['vdx']) if 'vdx' in v else 0.0,
-                                   float(v['vdy']) if 'vdy' in v else 0.0,
-                                   float(v['vcx']) if 'vcx' in v else 0.0,
-                                   float(v['vcy']) if 'vcy' in v else 0.0,
-                                   float(v['van']) if 'van' in v else 0.0))
-
+    fields_params = tuple(Field(*tuple(v[k] if k in v else 0.0 for k in Field.KEYS)) for v in fields['fields'])
     return FieldsParams(fields_type, fields_params)

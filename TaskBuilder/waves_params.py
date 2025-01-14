@@ -1,12 +1,16 @@
-from collections import namedtuple
+import dataclasses
+from typing import Tuple
 
 
-class Wave(namedtuple('Wave', 'lam, weight')):
+@dataclasses.dataclass(frozen=True)
+class Wave:
+    KEYS = ("lam", "weight")
+    lam: float
+    weight: float
     """Параметры одной длины волны для файла настроек"""
-    __slots__ = ()
-
-    def __new__(cls, lam: float = 0.55, weight: float = 1.0):
-        return super().__new__(cls, lam, weight)
+    @classmethod
+    def create(cls, lam: float = 0.55, weight: float = 1.0) -> 'Wave':
+        return cls(lam, weight)
 
     def __iter__(self):
         yield "lam", self.lam
@@ -16,9 +20,7 @@ class Wave(namedtuple('Wave', 'lam, weight')):
         return f"{{ \"lam\" : {self.lam}, \"weight\" : {self.weight} }}"
 
 
-def read_waves(json_node):
+def read_waves(json_node) -> Tuple[Wave, ...]:
     if 'waves' not in json_node:
-        return None
-    waves = json_node['waves']
-    return [Wave(float(v['lam']) if 'lam' in v else 0.55,
-                 float(v['weight']) if 'weight' in v else 0.0) for v in waves]
+        return ()
+    return tuple(Wave(*tuple((float(wave[k]) if k in wave else 0.0 for k in Wave.KEYS))) for wave in json_node['waves'])

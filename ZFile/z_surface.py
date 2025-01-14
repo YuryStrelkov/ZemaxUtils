@@ -14,7 +14,6 @@ class ZSurfaceTransform:
     """
     Описание способа преобразования системы координат для Zemax поверхности.
     """
-
     _AFTER_SURFACE = \
         {
             0: 'Explicit',
@@ -397,11 +396,11 @@ class ZSurface:
             if index == ZSurface.MAX_ZERNIKE_TERM:
                 break
             # TODO REMOVE THIS
-            if index == 0 or index == 1:
-                self._extra_params.append(value * 0.666)
-            else:
-                self._extra_params.append(value)
-            # self._extra_params.append(value)
+            # if index == 0 or index == 1:
+            #     self._extra_params.append(value)
+            # else:
+            #     self._extra_params.append(value)
+            self._extra_params.append(value)
 
     def __str__(self):
         nl = f'{ZSurface.Z_FILE_SURF_INDENT}\n'

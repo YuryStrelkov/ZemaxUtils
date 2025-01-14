@@ -68,7 +68,7 @@ class ZFile:
             _zf: ZFileRaw = ZFileRaw(file_path)
             if _zf is None:
                 return False
-            self._fields = ZFields(_zf)
+            self._fields = ZFields.create(_zf)
             self._waves = ZWaves(_zf)
             for v_id, v in _zf.header_params.items():
                 if v_id in ZFile._NO_FIELDS:

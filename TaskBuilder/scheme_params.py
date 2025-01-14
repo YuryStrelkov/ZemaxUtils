@@ -7,9 +7,6 @@ import json
 import os
 
 
-_SEPARATOR = '\\'
-
-
 def _collect_files_via_dir(directory: str, ext: str = '*') -> Tuple[str]:
     assert isinstance(directory, str)
     directories = [directory]
@@ -25,14 +22,17 @@ def _collect_files_via_dir(directory: str, ext: str = '*') -> Tuple[str]:
                 continue
             if os.path.isfile(c_path) and c_path.endswith(ext):
                 directory_files.append(c_path)
-    return tuple(f"{v.replace(_SEPARATOR, '/')}" for v in directory_files)
+    separator = '\\'
+    return tuple(f"{v.replace(separator, '/')}" for v in directory_files)
 
 
 class SchemeParams:
-
-    def __init__(self, params: List[SurfaceParams], remap: Union[Dict[int, int], None],
-                 desc_short: str = "No description", desc_lng: str = "No description",
-                 fields: FieldsParams = None, waves: List[Wave] = None):
+    def __init__(self, params: Tuple[SurfaceParams, ...],
+                 remap: Union[Dict[int, int], None],
+                 desc_short: str = "No description",
+                 desc_lng: str = "No description",
+                 fields: FieldsParams = None,
+                 waves: Tuple[Wave, ...] = None):
         self.description_short = desc_short
         self.description_long = desc_lng
         self.surf_params = params
@@ -57,28 +57,28 @@ class SchemeParams:
 
     def __add__(self, other: 'SchemeParams') -> 'SchemeParams':
         assert isinstance(other, SchemeParams)
-        return SchemeParams([s1 + s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
+        return SchemeParams(tuple(s1 + s2 for s1, s2 in zip(self.surf_params, other.surf_params)), self.surf_remap,
                             self.description_short, self.description_long)
 
     def __sub__(self, other: 'SchemeParams') -> 'SchemeParams':
         assert isinstance(other, SchemeParams)
-        return SchemeParams([s1 - s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
+        return SchemeParams(tuple(s1 - s2 for s1, s2 in zip(self.surf_params, other.surf_params)), self.surf_remap,
                             self.description_short, self.description_long)
 
     def __mul__(self, other: Union['SchemeParams', float, int]) -> 'SchemeParams':
         if isinstance(other, float) or isinstance(other, int):
-            return SchemeParams([s * other for s in self.surf_params], self.surf_remap,
+            return SchemeParams(tuple(s * other for s in self.surf_params), self.surf_remap,
                                 self.description_short, self.description_long)
         assert isinstance(other, SchemeParams)
-        return SchemeParams([s1 * s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
+        return SchemeParams(tuple(s1 * s2 for s1, s2 in zip(self.surf_params, other.surf_params)), self.surf_remap,
                             self.description_short, self.description_long)
 
     def __rtruediv__(self, other: Union['SchemeParams', float, int]) -> 'SchemeParams':
         if isinstance(other, float) or isinstance(other, int):
-            return SchemeParams([s / other for s in self.surf_params], self.surf_remap,
+            return SchemeParams(tuple(s / other for s in self.surf_params), self.surf_remap,
                                 self.description_short, self.description_long)
         assert isinstance(other, SchemeParams)
-        return SchemeParams([s1 / s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
+        return SchemeParams(tuple(s1 / s2 for s1, s2 in zip(self.surf_params, other.surf_params)), self.surf_remap,
                             self.description_short, self.description_long)
 
     @classmethod
@@ -124,30 +124,28 @@ class SchemeParams:
             for node in json_node["remap_surfs"]:
                 try:
                     remap_surf.update({int(node["table_index"]): int(node["scheme_index"])})
-                except ValueError as _:
-                    continue
-                except KeyError as _:
+                except (ValueError, KeyError) as _:
                     continue
         return cls(surfaces, remap_surf, description_short, description_long)
 
     @staticmethod
-    def read(file_path: str) -> List['SchemeParams']:
+    def read(file_path: str) -> Tuple['SchemeParams', ...]:
         if not os.path.exists(file_path):
-            return []
+            return ()
         if os.path.isdir(file_path):
             return SchemeParams.read_and_merge(_collect_files_via_dir(file_path, 'json'))
         with open(file_path, "rt") as output_file:
             json_file = json.load(output_file)
             if json_file is None:
-                return []
+                return ()
             if 'schemas' in json_file:
-                return [SchemeParams._read_scheme(node) for node in json_file['schemas']]
+                return tuple(SchemeParams._read_scheme(node) for node in json_file['schemas'])
             if 'scheme' in json_file:
-                return [SchemeParams._read_scheme(json_file)]
+                return SchemeParams._read_scheme(json_file),
             raise RuntimeError(f"Incorrect scheme file definition : {file_path}")
 
     @staticmethod
-    def read_and_merge(file_paths: Iterable[str]) -> List['SchemeParams']:
+    def read_and_merge(file_paths: Iterable[str]) -> Tuple['SchemeParams', ...]:
         params_list = []
         # reading each scheme in list
         for f_path in file_paths:
@@ -164,10 +162,10 @@ class SchemeParams:
                                                                      name_occurs[params.description_short]))
             else:
                 name_occurs[params.description_short] = 0
-        return params_list
+        return tuple(params_list)
 
     @staticmethod
-    def write_params_list(file_name: str, params: List['SchemeParams']):
+    def write_params_list(file_name: str, params: Iterable['SchemeParams']):
         with open(file_name, 'wt') as out_file:
             sep = ',\n'
             print(f"{{\n"
@@ -175,7 +173,9 @@ class SchemeParams:
                   f"\n}}", file=out_file, end='')
 
     def shuffle(self, scale: float) -> 'SchemeParams':
-        return SchemeParams([s.shuffle(scale) for s in self.surf_params], self.surf_remap,
-                            self.description_short, self.description_long)
+        return SchemeParams(tuple(s.shuffle(scale) for s in self.surf_params),
+                            self.surf_remap,
+                            self.description_short,
+                            self.description_long)
 
 

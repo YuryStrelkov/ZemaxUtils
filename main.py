@@ -109,16 +109,16 @@ def build_and_run_task_from_settings_list():
     z_task_src = os.path.join(os.getcwd(), r"scheme_14_01_2025\3_5676.json")
     z_task_dir = os.path.join(os.getcwd(), r"scheme_14_01_2025\task")
     task = TaskBuilder(z_file_src, z_task_src)
-    items1 = {220}  # {86, 100, 130, 160, 175, 190, 220}  # 86-220 sec
+    items1 = {86, 100, 130, 160, 175, 190, 220}  # 86-220 sec
     task.filter_task(lambda v: int(v.description_short) in items1)
-    task.create_task(z_task_dir1, task_info=SCHEME_ALL_CALCULATIONS)  # , tasks_ids=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+    task.create_task(z_task_dir, task_info=SCHEME_ALL_CALCULATIONS)  # , tasks_ids=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
 
     # task = TaskBuilder(z_file_src, z_task_src)
     # items2 = {4915, 4962, 5007, 5052, 5097, 5152, 5202, 5262, 5307, 5352}  # 4902-5676 sec
     # task.filter_task(lambda v: int(v.description_short) in items2)
     # task.create_task(z_task_dir2, task_info=SCHEME_ALL_CALCULATIONS)  # , tasks_ids=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
 
-    task.run_task()
+    # task.run_task()
     # for t in task.tasks:
     #     print(len(t.surf_params))
     #     for i1, i2 in t.surf_remap.items():
@@ -128,8 +128,6 @@ def build_and_run_task_from_settings_list():
 
 def collect_and_build_reports(result_dir: str):
     result_files = collect_files_via_dir(result_dir, 'json')
-    # d = os.path.dirname(result_files[0])
-    #  n = os.path.basename(result_files[0])
     f_name = os.path.join(os.path.dirname(result_files[0]),
                           '_'.join(os.path.basename(path).split('.')[0] for path in result_files))
     report_total = Report()
@@ -147,13 +145,14 @@ from Geometry import tracing_3d_test, tracing_2d_test
 
 
 if __name__ == "__main__":
-    build_and_run_task_from_settings_list()
+    tasks = SchemeParams.read("ZemaxSchemesSettings/scheme.json")
+
+    # build_and_run_task_from_settings_list()
     # collect_and_build_reports("26-11-2024/task/Task/Results")
     # UIMainWindow.run()
-    # exit()
 
-    build_and_run_task_from_settings_list()
-    collect_and_build_reports("19-12-2024/task_86-220_sec/Task/Results")
+    # build_and_run_task_from_settings_list()
+    # collect_and_build_reports(r"scheme_14_01_2025/task/Task/Results")
     # collect_and_build_reports("19-12-2024/task/Task/Task/Results")
     # tracing_2d_test()
     # tracing_3d_test()

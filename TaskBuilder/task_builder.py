@@ -1,5 +1,5 @@
 import json
-from typing import List, Tuple, Union, Dict, Generator, Callable
+from typing import List, Tuple, Union, Dict, Generator, Callable, Iterable
 
 from .scheme_params import SchemeParams
 from ZFile import ZFile
@@ -30,9 +30,13 @@ _FILES_EXTENSIONS = ("json", "txt", "zmx", "ses", "TXT", "ZMX", "SES")
 def _replace_file(orig_src: str, test_src: str):
     if not os.path.isfile(orig_src) or not os.path.isfile(test_src):
         return
-    with open(orig_src, 'rt', encoding='utf-8') as orig_file:
-        with open(test_src, 'rt', encoding='utf-8') as test_file:
-            equals = any(line1 != line2 for line1, line2 in zip(orig_file, test_file))
+    try:
+        with open(orig_src, 'rt', encoding='utf-8') as orig_file:
+            with open(test_src, 'rt', encoding='utf-8') as test_file:
+                equals = any(line1 != line2 for line1, line2 in zip(orig_file, test_file))
+    except UnicodeDecodeError as _:
+        print(f"decoding error while comparing files \"{orig_src}\" and \"{test_src}\"")
+        return 
     if equals:
         print(f"script      : {test_src}\nis equal to : {orig_src}\n")
     else:
@@ -52,6 +56,7 @@ def _get_zemax_exe():
 
 def _get_zemax_scripts():
     available_discs = (f'{d}:' for d in string.ascii_uppercase if os.path.exists(f'{d}:'))
+
     def _get_dir():
         for disk in available_discs:
             for root, dirs, files in os.walk(disk):
@@ -251,7 +256,7 @@ class TaskBuilder:
         TaskBuilder._create_dir(self.task_results_directory)
         TaskBuilder._clear_dir(self.task_results_directory)
 
-    def _crate_task_settings_file(self, task_info: int, task_files: List[str]):
+    def _crate_task_settings_file(self, task_info: int, task_files: Iterable[str]):
         with open(os.path.join(self.task_working_directory, "SCHEMES_LIST.TXT"), "wt") as task_list:
             #  print(r"call script \"READ_AND_COMPUTE.ZMX\"", file=task_list)
             #  print(f"with arg {self._task_working_directory}SCHEMES_LIST.TXT", file=task_list)
