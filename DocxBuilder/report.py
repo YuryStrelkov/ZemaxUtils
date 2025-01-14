@@ -4,12 +4,15 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.section import WD_ORIENTATION
 from matplotlib import pyplot as plt
 from Geometry import poly_regression
-from typing import Union, Tuple
+from typing import Union, Tuple, Literal
 from docx.shared import Cm
 from docx.shared import Pt
 from docx import Document
 import numpy as np
 import os.path
+
+
+POLYNOM_ORDER = 6
 
 
 class Report:
@@ -35,7 +38,8 @@ class Report:
         self._images_count: int = 0
         self._tables_count: int = 0
         self._formulae_count: int = 0
-        self._docx: Document = Document(r'E:\Github\ZemaxUtils\ZemaxUtils\DocxBuilder\report_template.docx')
+        # abs_path = os.path.join(os.path.dirname(__file__), 'report_template.docx')
+        self._docx: Document = Document(os.path.join(os.path.dirname(__file__), 'report_template.docx'))
         self._report_tmp: str = ''
 
     def keep_table_on_one_page(self):
@@ -74,6 +78,7 @@ class Report:
         last_paragraph.alignment = alignment
         if desc == "":
             f_name = '.'.join(v for v in src.split("\\")[-1].split(".")[:-1])
+
             if f_name.startswith("psf"):
                 desc = f"Результат моделирования PSF по всем полям для длины волны {f_name.split(' ')[-1]} мкм."
             elif f_name.startswith("psf_cross"):
@@ -276,53 +281,25 @@ class Report:
                                        f'Углы имеют размерность градусов, координаты и радиусы - миллиметры',
                            data=data, font_size=12)
 
+    def _create_polynom_table(self, file: ResultFile, *,
+                              description: str = "", poly_order: int = 6, split_plane: Literal["X", "Y"] = "X"):
+        data = []
+        for coord in file.cords:
+            angles, coordinates =\
+                (coord.x_angle, coord.x_slice) if split_plane == "X" else (coord.y_angle, coord.y_slice)
+            data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
+            data.extend(list(map(lambda v: f'{v:.2e}', poly_regression(coordinates, angles, poly_order).flat)))
+        self.add_table(headers=('WL,[мкм]', *tuple(f"{split_plane}^{i}" for i in range(poly_order))),
+                       description=f'{description}. Разложение вдоль оси {split_plane}. '
+                                   f'Коэффициенты имеют размерности соответственно:'
+                                   f' {", ".join(f"mm^{-o}"for o in range(poly_order))}', data=data)
+
     def _spot_center_positions_interp(self, file: ResultFile):
         """
         #######################################
         ######     ПРЯМАЯ ЗАВИСИМОСТЬ    ######
         #######################################
         """
-        # self.add_paragraph(
-        #     f"\n\tПрямая зависимость положения геометрического центра спот диаграммы на"
-        #     f" плоскости изображения в виде полиномиального разложения "
-        #     f"представлена в таблицах {self._tables_count + 1} - {self._tables_count + 2}, соответственно.",
-        #     alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-#
-        # data = []
-        # for coord in file.cords:
-        #     angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
-        #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-        #     data.extend([f'{v:.3E}' for v in poly_regression(angles, coord.x_slice, 6).flat])
-        # self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
-        #                description=f'Полиномиальное разложение прямой зависимости положения геометрического центра '
-        #                            f'спот диаграммы на '
-        #                            f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
-        #                            f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data, font_size=12)
-        # data.clear()
-        # for coord in file.cords:
-        #     angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
-        #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-        #     data.extend(list(map(lambda v: f'{v:.3E}', poly_regression(angles, coord.y_slice, 6).flat)))
-        # self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
-        #                description=f'Полиномиальное разложение прямой зависимости положения геометрического центра '
-        #                            f'спот диаграммы на '
-        #                            f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
-        #                            f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data, font_size=12)
-        # self.add_paragraph(
-        #     f"\n\tПрямая зависимость положения геометрического центра спот диаграммы на плоскости изображения "
-        #     f"в виде линейного разложения "
-        #     f"представлено в таблицах {self._tables_count + 1} - {self._tables_count + 2}. Коэффициенты имеют "
-        #     f"размерности соответственно mm, mm^0.", alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-        # data.clear()
-        # for coord in file.cords:
-        #     angles_x = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
-        #     angles_y = np.linspace(coord.AX_MIN, coord.AY_MAX, coord.N_ANGLES_Y)
-        #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_x, coord.x_slice))))
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_y, coord.y_slice))))
-        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
-        #                description=f'Линейное разложение прямых зависимостей положения центра спот диаграммы на  '
-        #                            f'плоскости относительно осей x и y.', data=data, font_size=12)
         """
         #######################################
         ######    ОБРАТНАЯ ЗАВИСИМОСТЬ   ######
@@ -334,42 +311,16 @@ class Report:
             f"представлена в таблицах {self._tables_count + 1} - {self._tables_count + 2}, соответственно.",
             alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
 
-        data = []
-        for coord in file.cords:
-            angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
-            data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-            data.extend([f'{v:.3f}' for v in poly_regression(coord.x_slice, angles, 6).flat])
-        self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
-                       description=f'Полиномиальное разложение зависимости угла падения поля от'
-                                   f' положения геометрического центра спот диаграммы на '
-                                   f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # , font_size=12)
-        data.clear()
-        for coord in file.cords:
-            angles = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
-            data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-            data.extend(list(map(lambda v: f'{v:.3f}', poly_regression(coord.y_slice, angles, 6).flat)))
-        self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
-                       description=f'Полиномиальное разложение зависимости угла падения поля от'
-                                   f' положения геометрического центра спот диаграммы на '
-                                   f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # , font_size=12)
-
-        # self.add_paragraph(
-        #     f"\tОбратная зависимость положения геометрического центра спот диаграммы на плоскости изображения "
-        #     f"в виде линейного разложения "
-        #     f"представлено в таблицах {self._tables_count + 1} - {self._tables_count + 2}. Коэффициенты имеют "
-        #     f"размерности соответственно mm, mm^0.", alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-        # data.clear()
-        # for coord in file.cords:
-        #     angles_x = np.linspace(coord.AX_MIN, coord.AX_MAX, coord.N_ANGLES_X)
-        #     angles_y = np.linspace(coord.AX_MIN, coord.AY_MAX, coord.N_ANGLES_Y)
-        #     data.append(f'{file.wavelengths[coord.WAVE_ID - 1]:.3f}')
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(coord.x_slice, angles_x))))
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(coord.y_slice, angles_y))))
-        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
-        #                description=f'Линейное разложение обратных зависимостей положения центра спот диаграммы на  '
-        #                            f'плоскости относительно осей x и y.', data=data, font_size=12)
+        # self._create_polynom_table(file,
+        #                            description="Полиномиальное разложение зависимости угла падения поля от "
+        #                                        "положения геометрического центра спот диаграммы на плоскости.",
+        #                            split_plane="X",
+        #                            poly_order=POLYNOM_ORDER)
+        self._create_polynom_table(file,
+                                   description="Полиномиальное разложение зависимости угла падения поля от "
+                                               "положения геометрического центра спот диаграммы на плоскости.",
+                                   split_plane="Y",
+                                   poly_order=POLYNOM_ORDER)
 
     def _spot_center_positions_interp_images(self, file: ResultFile):
         self.add_paragraph(
@@ -440,7 +391,8 @@ class Report:
                        size=(visual_settings.width, visual_settings.height))
 
     def _psf_diagrams_tables(self, file: ResultFile):
-        self.add_paragraph(f"\n\tПодробная информация о параметрах функций рассеяния точек схемы представлена в таблицах "
+        self.add_paragraph(
+            f"\n\tПодробная информация о параметрах функций рассеяния точек схемы представлена в таблицах "
                            f"{self._tables_count + 1} - {self._images_count + 1 + len(file.wavelengths)},"
                            f" В таблицах представлены координаты максимума интенсивности функции рассеяния точки и "
                            f"относительная интенсивность на плоскости изображения от угла падения поля и длины волны. "
@@ -473,48 +425,6 @@ class Report:
         ######     ПРЯМАЯ ЗАВИСИМОСТЬ    ######
         #######################################
         """
-        # self.add_paragraph(
-        #     f"\n\tПрямая зависимость положения максимума интенсивности функции рассеяния точки на"
-        #     f" плоскости изображения в виде полиномиального разложения "
-        #     f"представлена в таблицах {self._tables_count + 1} - {self._tables_count + 2}, соответственно.\n",
-        #     alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-
-        # data = []
-        # angles_x = file.fields_angles_x
-        # angles_y = file.fields_angles_y
-        # x_cords = file.x_image_pos_per_angle_from_psf
-        # y_cords = file.x_image_pos_per_angle_from_psf
-        # for wave_id, psf_cords in enumerate(x_cords):
-        #     data.append(f'{file.wavelengths[wave_id]:.3f}')
-        #     data.extend([f'{v:.3E}' for v in poly_regression(angles_x, psf_cords, 6).flat])
-        # self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
-        #                description=f'Полиномиальное разложение прямой зависимости положения максимума интенсивности'
-        #                            f' функции рассеяния точки на '
-        #                            f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
-        #                            f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data, font_size=12)
-        # data.clear()
-        # for wave_id, psf_cords in enumerate(y_cords):
-        #     data.append(f'{file.wavelengths[wave_id]:.3f}')
-        #     data.extend(list(map(lambda v: f'{v:.3E}', poly_regression(angles_y, psf_cords, 6).flat)))
-        # self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
-        #                description=f'Полиномиальное разложение прямой зависимости положения максимума интенсивности'
-        #                            f' функции рассеяния точки на '
-        #                            f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
-        #                            f' mm, mm^0, mm^-1, mm^-2, mm^-3.', data=data, font_size=12)
-        # self.add_paragraph(
-        #     f"\n\tПрямая зависимость положения максимума интенсивности функции рассеяния точки на плоскости изображения "
-        #     f"в виде линейного разложения "
-        #     f"представлено в таблицах {self._tables_count + 1} - {self._tables_count + 2}. Коэффициенты имеют "
-        #     f"размерности соответственно mm, mm^0.\n", alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-        # data.clear()
-        # for wave_id, (x, y) in enumerate(zip(x_cords, y_cords)):
-        #     data.append(f'{file.wavelengths[wave_id]:.3f}')
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_x, x))))
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(angles_y, y))))
-        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
-        #                description=f'Линейное разложение прямых зависимостей положения максимума интенсивности'
-        #                            f' функции рассеяния точки на плоскости относительно осей x и y.',
-        #                data=data, font_size=12)
         """
         #######################################
         ######    ОБРАТНАЯ ЗАВИСИМОСТЬ   ######
@@ -525,52 +435,40 @@ class Report:
             f" плоскости изображения в виде полиномиального разложения "
             f"представлена в таблицах {self._tables_count + 1} - {self._tables_count + 2}, соответственно.\n",
             alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
-
         data = []
         angles_x = file.fields_angles_x
         angles_y = file.fields_angles_y
         x_cords = file.x_image_pos_per_angle_from_psf
-        y_cords = file.x_image_pos_per_angle_from_psf
-        for wave_id, psf_cords in enumerate(x_cords):
-            data.append(f'{file.wavelengths[wave_id]:.3f}')
-            if psf_cords.size != 0:
-                length = min(psf_cords.size, angles_x.size)
-                data.extend([f'{v:.3f}' for v in poly_regression(psf_cords[0:length], angles_x[0:length], 6).flat])
-            else:
-                data.extend([f'NAN' for _ in range(6)])
-
-        self.add_table(headers=('WL,[мкм]', 'X^0', 'X^1', 'X^2', 'X^3', 'X^4', 'X^5'),
-                       description=f'Полиномиальное разложение зависимости угла падения поля от положения'
-                                   f' максимума интенсивности функции рассеяния точки на '
-                                   f'плоскости относительно оси х. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # ,, font_size=12)
-        data.clear()
+        y_cords = file.y_image_pos_per_angle_from_psf
         for wave_id, psf_cords in enumerate(y_cords):
             data.append(f'{file.wavelengths[wave_id]:.3f}')
             if psf_cords.size != 0:
                 length = min(psf_cords.size, angles_x.size)
-                data.extend([f'{v:.3f}' for v in poly_regression(psf_cords[0:length], angles_x[0:length], 6).flat])
+                x, y = psf_cords[0:length], angles_y[0:length]
+                data.extend([f'{v:.2e}' for v in poly_regression(x, y, POLYNOM_ORDER).flat])
             else:
-                data.extend([f'NAN' for _ in range(6)])
-        self.add_table(headers=('WL,[мкм]', 'Y^0', 'Y^1', 'Y^2', 'Y^3', 'Y^4', 'Y^5'),
+                data.extend([f'0.0' for _ in range(POLYNOM_ORDER)])
+
+        self.add_table(headers=('WL,[мкм]', *tuple(f"Y^{i}" for i in range(POLYNOM_ORDER))),
                        description=f'Полиномиальное разложение зависимости угла падения поля от положения'
                                    f' максимума интенсивности функции рассеяния точки на '
                                    f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
-                                   f' mm, mm^0, mm^-1, mm^-2, mm^-3', data=data)  # ,, font_size=12)
-        # self.add_paragraph(
-        #     f"\n\tОбратная зависимость положения максимума интенсивности функции рассеяния точки на плоскости изображения "
-        #     f"в виде линейного разложения "
-        #     f"представлено в таблицах {self._tables_count + 1} - {self._tables_count + 2}. Коэффициенты имеют "
-        #     f"размерности соответственно mm, mm^0.\n", alignment=WD_PARAGRAPH_ALIGNMENT.JUSTIFY)
+                                   f' mm^0, mm^-1, mm^-2, mm^-3, mm^-5', data=data)  # ,, font_size=12)
         # data.clear()
-        # for wave_id, (x, y) in enumerate(zip(x_cords, y_cords)):
+        # for wave_id, psf_cords in enumerate(y_cords):
         #     data.append(f'{file.wavelengths[wave_id]:.3f}')
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(x, angles_x))))
-        #     data.extend(list(map(lambda v: f'{v:.3E}', linear_regression(y, angles_y))))
-        # self.add_table(headers=('WL,[мкм]', 'kx', 'bx', 'ky', 'by'),
-        #                description=f'Линейное разложение обратных зависимостей положения максимума интенсивности'
-        #                            f' функции рассеяния точки на плоскости относительно осей x и y.',
-        #                data=data, font_size=12)
+        #     if psf_cords.size != 0:
+        #         length = min(psf_cords.size, angles_y.size)
+        #         x, y = psf_cords[0:length], angles_y[0:length]
+        #         # print(f"y - wave_id:{wave_id}\nx: {x}\ny: {y}\nz: {poly_regression(x, y, POLYNOM_ORDER)}\n")
+        #         data.extend([f'{v:.2e}' for v in poly_regression(x, y, POLYNOM_ORDER).flat])
+        #     else:
+        #         data.extend([f'0.0' for _ in range(POLYNOM_ORDER)])
+        # self.add_table(headers=('WL,[мкм]', *tuple(f"Y^{i}" for i in range(POLYNOM_ORDER))),
+        #                description=f'Полиномиальное разложение зависимости угла падения поля от положения'
+        #                            f' максимума интенсивности функции рассеяния точки на '
+        #                            f'плоскости относительно оси y. Коэффициенты имеют размерности соответственно'
+        #                            f' mm^0, mm^-1, mm^-2, mm^-3, mm^-5', data=data)  # ,, font_size=12)
 
     def _psf_center_positions_interp_images(self, file: ResultFile):
         self.add_paragraph(

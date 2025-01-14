@@ -1,8 +1,11 @@
-from ..common import parallel, parallel_range, fast_math
+from ..common import parallel, parallel_range, fast_math, NUMERICAL_ACCURACY
 from numpy.linalg import LinAlgError
 from typing import Tuple
 from math import sqrt
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @fast_math
@@ -48,7 +51,12 @@ def linear_regression(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
     sum_xy = (x * y).sum()
     sum_xx = (x * x).sum()
     inv_n = 1.0 / x.size
-    k = (sum_xy - sum_x * sum_y * inv_n) / (sum_xx - sum_x * sum_x * inv_n)
+    b = (sum_xx - sum_x * sum_x * inv_n)
+    if abs(b) < NUMERICAL_ACCURACY:
+        logger.warning("linear_regression::zero division error")
+        return 0.0, 0.0
+    a = (sum_xy - sum_x * sum_y * inv_n)
+    k = a / b
     return k, (sum_y - k * sum_x) * inv_n
 
 
@@ -130,7 +138,7 @@ def bi_linear_regression(x: np.ndarray, y: np.ndarray, z: np.ndarray) -> Tuple[f
         kx, ky, b = np.array((1.0, 1.0, 0.0)) - np.linalg.inv(hess) @ grad
         return kx, ky, b
     except LinAlgError as err:
-        print(err.args)
+        logger.error(f"bi_linear_regression::errors: {','.join(e for e in err.args)}")
         return 0.0, 0.0, 0.0
 
 
@@ -162,6 +170,8 @@ def poly_regression(x: np.ndarray, y: np.ndarray, order: int = 5) -> np.ndarray:
     :param order: порядок полинома
     :return: набор коэффициентов bi полинома y = Σx^i*bi
     """
+    # return np.array((*linear_regression(x, y), *tuple(0.0 for _ in range(order - 2))), dtype=float)
+
     assert x.size == y.size, "poly_regression::error::x.size != y.size"
     a_m = np.zeros((order, order,), dtype=float)
     c_m = np.zeros((order,), dtype=float)
@@ -176,8 +186,10 @@ def poly_regression(x: np.ndarray, y: np.ndarray, order: int = 5) -> np.ndarray:
     try:
         return np.linalg.inv(a_m) @ c_m
     except LinAlgError as err:
-        print(err.args)
-        return np.array(linear_regression(x, y))
+        logger.error(f"poly_regression::errors: {','.join(e for e in err.args)}")
+        #  f"x: [{','.join(f'{xi:.3e}'for xi in x.flat)}]\n"
+        #  f"y: [{','.join(f'{yi:.3e}'for yi in y.flat)}]\n")
+        return np.array((*linear_regression(x, y), *tuple(0.0 for _ in range(order - 2))), dtype=float)
 
 
 @fast_math
@@ -224,7 +236,7 @@ def n_linear_regression(data_rows: np.ndarray) -> np.ndarray:
     try:
         return pt_0 - np.linalg.inv(hess) @ grad
     except LinAlgError as err:
-        print(err.args)
+        logger.error(f"n_linear_regression::errors: {','.join(e for e in err.args)}")
         return np.zeros((n_dimension,), dtype=float)
 
 
@@ -244,7 +256,7 @@ def quadratic_regression_2d(x: np.ndarray, y: np.ndarray, z: np.ndarray) -> np.n
     try:
         return np.linalg.inv(a_m) @ b_c
     except LinAlgError as err:
-        print(err.args)
+        logger.error(f"quadratic_regression_2d::errors: {','.join(e for e in err.args)}")
         return np.array(bi_linear_regression(x, y, z))
 
 
@@ -275,11 +287,7 @@ def _in_range(val: float, x_0: float, x_1: float) -> bool:
     :param x_1: правая граница диапазона
     :return:
     """
-    if val < x_0:
-        return False
-    if val > x_1:
-        return False
-    return True
+    return x_0 <= val <= x_1
 
 
 @fast_math

@@ -396,12 +396,17 @@ class ZSurface:
         for index, value in enumerate(zernike_params):
             if index == ZSurface.MAX_ZERNIKE_TERM:
                 break
-            self._extra_params.append(value)
+            # TODO REMOVE THIS
+            if index == 0 or index == 1:
+                self._extra_params.append(value * 0.666)
+            else:
+                self._extra_params.append(value)
+            # self._extra_params.append(value)
 
     def __str__(self):
         nl = f'{ZSurface.Z_FILE_SURF_INDENT}\n'
         start = ZSurface.Z_FILE_SURF_INDENT
-        args = [f"{start}COMM {self.comment}\n" if self.comment != "" else "",
+        args = (f"{start}COMM {self.comment}\n" if self.comment != "" else "",
                 f"{start}TYPE {self._type}\n",
                 f"{start}CONI {self.conic}\n",
                 f"{start}DISZ {self.dist_z if self.dist_z != float('inf') else 'INFINITY'}\n",
@@ -413,5 +418,5 @@ class ZSurface:
                 f"{nl.join(f'{start}XDAT {i + 1} {_round(v)}' for i, v in enumerate(self._extra_params))}\n"
                 if len(self._extra_params) != 0 else "",
                 f"{nl.join(f'{start}{v}' for v in self._transforms)}\n" if len(self._transforms) != 0 else "",
-                f"{nl.join(f'{start}{v}' for v in self._others)}\n" if len(self._others) != 0 else ""]
+                f"{nl.join(f'{start}{v}' for v in self._others)}\n" if len(self._others) != 0 else "")
         return ''.join(v for v in args)
