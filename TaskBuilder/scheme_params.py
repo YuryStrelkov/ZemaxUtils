@@ -55,17 +55,17 @@ class SchemeParams:
                f"\t\t\"scheme\": {'[]' if self.surf_params is None else f'[{surf_items()}]'}\n" \
                f"\t}}"
 
-    def __add__(self, other):
+    def __add__(self, other: 'SchemeParams') -> 'SchemeParams':
         assert isinstance(other, SchemeParams)
         return SchemeParams([s1 + s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
                             self.description_short, self.description_long)
 
-    def __sub__(self, other):
+    def __sub__(self, other: 'SchemeParams') -> 'SchemeParams':
         assert isinstance(other, SchemeParams)
         return SchemeParams([s1 - s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
                             self.description_short, self.description_long)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union['SchemeParams', float, int]) -> 'SchemeParams':
         if isinstance(other, float) or isinstance(other, int):
             return SchemeParams([s * other for s in self.surf_params], self.surf_remap,
                                 self.description_short, self.description_long)
@@ -73,7 +73,7 @@ class SchemeParams:
         return SchemeParams([s1 * s2 for s1, s2 in zip(self.surf_params, other.surf_params)], self.surf_remap,
                             self.description_short, self.description_long)
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Union['SchemeParams', float, int]) -> 'SchemeParams':
         if isinstance(other, float) or isinstance(other, int):
             return SchemeParams([s / other for s in self.surf_params], self.surf_remap,
                                 self.description_short, self.description_long)

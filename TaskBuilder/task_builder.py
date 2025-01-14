@@ -143,15 +143,16 @@ class TaskBuilder:
 
     @property
     def is_valid(self) -> bool:
-        if self._z_file_proto_src == "":
-            return False
-        if self._task_file_src == "":
-            return False
-        if self._z_file is None:
-            return False
-        if self._task_args is None:
-            return False
-        return True
+        return all((self._z_file_proto_src, self._task_file_src, self._z_file, self._task_args))
+        # if self._z_file_proto_src == "":
+        #     return False
+        # if self._task_file_src == "":
+        #     return False
+        # if self._z_file is None:
+        #     return False
+        # if self._task_args is None:
+        #     return False
+        # return True
 
     def remove_task_by_id(self, task_id: int) -> bool:
         if task_id in self._task_args:

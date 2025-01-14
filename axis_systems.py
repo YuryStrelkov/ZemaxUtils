@@ -1,4 +1,4 @@
-from Geometry import Transform, Vector3, Quaternion, Matrix4
+from Geometry import Transform2d, Vector3, Quaternion, Matrix4
 import random
 import math
 r_amp = 1e-5
@@ -61,12 +61,12 @@ def combine_basis(first: Matrix4, second: Matrix4):
     return bild_basis(avg.right, avg.up, avg.front, avg.origin)
 
 
-telescope_1 = Transform()
+telescope_1 = Transform2d()
 telescope_1.ay = (90 - 70.5)
 print(telescope_1)
 print(Quaternion.from_rotation_matrix(telescope_1.transform_matrix))
 print()
-telescope_2 = Transform()
+telescope_2 = Transform2d()
 telescope_2.ay = -(90 - 70.5)
 print(telescope_2)
 print(Quaternion.from_rotation_matrix(telescope_2.transform_matrix))

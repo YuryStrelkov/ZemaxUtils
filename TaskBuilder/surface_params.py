@@ -30,7 +30,7 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
             for index in range(16):
                 yield f"easph[{index}]", 0.0
 
-    def __str__(self):
+    def __str__(self) -> str:
         def formatter(_array):
             n = len(_array)
             nl = '\n                          '
@@ -50,7 +50,7 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
 
         return f"\t\t{{\n{''.join(v for v in params)}\t\t}}"
 
-    def __add__(self, other):
+    def __add__(self, other: 'SurfaceParams') -> 'SurfaceParams':
         assert isinstance(other, SurfaceParams)
         assert self.surf_n == other.surf_n
         return SurfaceParams(self.surf_n, Vector2.min(self.tilt, other.tilt),
@@ -62,7 +62,7 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
                              self.zernike if other.zernike is None else other.zernike if self.zernike is None
                              else [a + b for a, b in zip(self.zernike, other.zernike)])
 
-    def __sub__(self, other):
+    def __sub__(self, other: 'SurfaceParams') -> 'SurfaceParams':
         assert isinstance(other, SurfaceParams)
         assert self.surf_n == other.surf_n
         return SurfaceParams(self.surf_n, Vector2.min(self.tilt, other.tilt),
@@ -74,7 +74,7 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
                              self.zernike if other.zernike is None else other.zernike if self.zernike is None
                              else [a - b for a, b in zip(self.zernike, other.zernike)])
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union['SurfaceParams', float, int]) -> 'SurfaceParams':
         if isinstance(other, float) or isinstance(other, int):
             return SurfaceParams(self.surf_n, self.tilt,
                                  self.decenter,
@@ -97,7 +97,7 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
                                  else [a * b for a, b in zip(self.zernike, other.zernike)])
         raise ValueError()
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Union['SurfaceParams', float, int]) -> 'SurfaceParams':
         if isinstance(other, float) or isinstance(other, int):
             return SurfaceParams(self.surf_n, self.tilt,
                                  self.decenter,
@@ -120,7 +120,7 @@ class SurfaceParams(namedtuple('SurfaceParams', 'surf_n, tilt, decenter, '
                                  else [a / b for a, b in zip(self.zernike, other.zernike)])
         raise ValueError()
 
-    def shuffle(self, scale: float = 0.5):
+    def shuffle(self, scale: float = 0.5) -> 'SurfaceParams':
         return SurfaceParams(self.surf_n,
                              self.tilt,
                              self.decenter,

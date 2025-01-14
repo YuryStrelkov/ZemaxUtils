@@ -103,8 +103,8 @@ def build_and_run_task_from_settings_list():
     :return:
     """
     z_file_src = os.path.join(os.getcwd(), r"ZemaxSchemes\F_07g_04_Blenda_PI_Fin.zmx")
-    z_task_src = os.path.join(os.getcwd(), r"26-11-2024\500.json")
-    z_task_dir = os.path.join(os.getcwd(), r"26-11-2024\task")
+    z_task_src = os.path.join(os.getcwd(), r"scheme_14_01_2025\3_5676.json")
+    z_task_dir = os.path.join(os.getcwd(), r"scheme_14_01_2025\task")
     task = TaskBuilder(z_file_src, z_task_src)
     task.create_task(z_task_dir, SCHEME_ALL_CALCULATIONS)
     # task.run_task()
@@ -129,8 +129,8 @@ from Geometry import tracing_3d_test, tracing_2d_test
 
 
 if __name__ == "__main__":
-    # build_and_run_task_from_settings_list()
-    collect_and_build_reports("26-11-2024/task/Task/Results")
+    build_and_run_task_from_settings_list()
+    # collect_and_build_reports("26-11-2024/task/Task/Results")
     # UIMainWindow.run()
     # exit()
     # tracing_2d_test()
