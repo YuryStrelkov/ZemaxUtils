@@ -106,10 +106,10 @@ def build_and_run_task_from_settings_list():
     :return:
     """
     z_file_src = os.path.join(os.getcwd(), r"ZemaxSchemes\F_07g_04_Blenda_PI_Fin.zmx")
-    z_task_src = os.path.join(os.getcwd(), r"scheme_14_01_2025\3_5676.json")
-    z_task_dir = os.path.join(os.getcwd(), r"scheme_14_01_2025\task")
+    z_task_src = os.path.join(os.getcwd(), r"TaskSettings/15_01_2025/3_5676_3.json")
+    z_task_dir = os.path.join(os.getcwd(), r"TaskSettings/15_01_2025/task-3_5676_3")
     task = TaskBuilder(z_file_src, z_task_src)
-    items1 = {86, 100, 130, 160, 175, 190, 220}  # 86-220 sec
+    items1 = {220}  # {86, 100, 130, 160, 175, 190, 220}  # 86-220 sec
     task.filter_task(lambda v: int(v.description_short) in items1)
     task.create_task(z_task_dir, task_info=SCHEME_ALL_CALCULATIONS)  # , tasks_ids=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
 
@@ -145,14 +145,14 @@ from Geometry import tracing_3d_test, tracing_2d_test
 
 
 if __name__ == "__main__":
-    tasks = SchemeParams.read("ZemaxSchemesSettings/scheme.json")
+    # tasks = SchemeParams.read("ZemaxSchemesSettings/scheme.json")
 
     # build_and_run_task_from_settings_list()
     # collect_and_build_reports("26-11-2024/task/Task/Results")
     # UIMainWindow.run()
 
     # build_and_run_task_from_settings_list()
-    # collect_and_build_reports(r"scheme_14_01_2025/task/Task/Results")
+    collect_and_build_reports(r"TaskSettings/15_01_2025/task-3_5676_3/Task/Results")
     # collect_and_build_reports("19-12-2024/task/Task/Task/Results")
     # tracing_2d_test()
     # tracing_3d_test()

@@ -1,20 +1,34 @@
-from collections import namedtuple
 from .z_file import ZFileRaw
+import dataclasses
 
 
-class ZSequentialSettings(namedtuple('ZSequentialSettings',
-                                     'max_intersections_per_ray, max_segments_per_ray, max_nested_or_touching_objects, '
-                                     'minimum_relative_ray_intensity, minimum_absolute_ray_intensity, '
-                                     'glue_distance_in_lens_unit, missed_ray_draw_distance_in_lens_unit,'
-                                     'maximum_source_file_rays_in_memory, retrace_source_file_upon_file_open,'
-                                     'simple_ray_splitting')):
+@dataclasses.dataclass(frozen=True)
+class ZSequentialSettings:
+    max_intersections_per_ray: int
+    max_segments_per_ray: int
+    max_nested_or_touching_objects: int
+    minimum_relative_ray_intensity: float
+    minimum_absolute_ray_intensity: float
+    glue_distance_in_lens_unit: float
+    missed_ray_draw_distance_in_lens_unit: float
+    maximum_source_file_rays_in_memory: int
+    retrace_source_file_upon_file_open: bool
+    simple_ray_splitting: bool
 
-    def __new__(cls, z_file: ZFileRaw):
+    @classmethod
+    def create(cls, z_file: ZFileRaw) -> 'ZSequentialSettings':
         assert 'NSCD' in z_file.params
         raw_info = z_file.params['NSCD'][0].split(' ')
-        return super.__new__(cls, int(raw_info[1]), int(raw_info[4]), float(raw_info[3]), float(raw_info[2]),
-                             float(raw_info[6]), float(raw_info[10]), int(raw_info[12]),
-                             True if raw_info[6] == '1' else False, True if raw_info[13] == '1' else False)
+        return cls(int(raw_info[1]),
+                   int(raw_info[4]),
+                   int(raw_info[3]),
+                   float(raw_info[2]),
+                   float(raw_info[6]),
+                   float(raw_info[10]),
+                   0.0,
+                   int(raw_info[12]),
+                   True if raw_info[6] == '1' else False,
+                   True if raw_info[13] == '1' else False)
 
     def __iter__(self):
         yield 'Setting', "max_intersections_per_ray"
@@ -38,7 +52,7 @@ class ZSequentialSettings(namedtuple('ZSequentialSettings',
         yield 'Setting', "simple_ray_splitting"
         yield 'Value', self.simple_ray_splitting
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{{\n" \
                f"\t\"MaxIntersectionsPerRay\":          {self.max_intersections_per_ray            :>12},\n" \
                f"\t\"MaxSegmentsPerRay\":               {self.max_segments_per_ray                 :>12},\n" \
@@ -51,7 +65,7 @@ class ZSequentialSettings(namedtuple('ZSequentialSettings',
                f"\t\"RetraceSourceFileUponFileOpen\":   {self.retrace_source_file_upon_file_open   :>12},\n" \
                f"\t\"SimpleRaySplitting\":              {self.simple_ray_splitting                 :>12}\n}}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"NSCD" \
                f" {self.max_intersections_per_ray}" \
                f" {self.max_segments_per_ray}" \

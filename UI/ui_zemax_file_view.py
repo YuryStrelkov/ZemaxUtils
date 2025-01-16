@@ -113,7 +113,7 @@ class UIZemaxFileView(QScrollArea):
 
     def set_scheme_common_info(self, scheme: ZFile) -> 'UIZemaxFileView':
         layout = QVBoxLayout()
-        v = tuple(scheme.common_params)
+        #  v = tuple(scheme.common_params)
         layout.addWidget(UITableWidget.make_table_from_iterable(tuple(scheme.common_params)))
         self._scheme_common_info.set_content_layout(layout)
         return self

@@ -138,7 +138,6 @@ def psf_difference_div(scheme_real: ResultFile, scheme_deformed: ResultFile, spo
 def compute_focal_shift(scheme_real: ResultFile, file_name: str = "focal_shift.csv", psf: bool = False):
     a = 0.750
     da = 1e-5
-
     def formatter(i):
         return f"\"C{i}\""
 
