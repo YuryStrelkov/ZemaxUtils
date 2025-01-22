@@ -1,4 +1,6 @@
 import json
+import time
+from threading import Thread
 from typing import List, Tuple, Union, Dict, Generator, Callable, Iterable
 
 from .scheme_params import SchemeParams
@@ -17,111 +19,7 @@ INCLUDE_ZMX_PROTO = 16
 
 DEFAULT_TASK_INFO: int = COMMON_SCHEME_INFO | SCHEME_SPOT_DIAGRAM | SCHEME_MTF | SCHEME_PSF | INCLUDE_ZMX_PROTO
 
-# PRETENDERS_FOR_ZEMAX = (r"Zemax",
-#                         r"Program Files\Zemax",
-#                         r"Program Files(x86)\Zemax")
-#
-# PRETENDERS_FOR_SCRIPT = (r"Zemax\Macros", r"Program Files\Zemax\Macros",
-#                          r"Program Files(x86)\Zemax\Macros",
-#                          r"Users\User\Documents\Zemax\Macros")
 _FILES_EXTENSIONS = ("json", "txt", "zmx", "ses", "TXT", "ZMX", "SES")
-
-
-def _replace_file(orig_src: str, test_src: str):
-    if not os.path.isfile(orig_src) or not os.path.isfile(test_src):
-        return
-    try:
-        with open(orig_src, 'rt', encoding='utf-8') as orig_file:
-            with open(test_src, 'rt', encoding='utf-8') as test_file:
-                equals = any(line1 != line2 for line1, line2 in zip(orig_file, test_file))
-    except UnicodeDecodeError as _:
-        print(f"decoding error while comparing files \"{orig_src}\" and \"{test_src}\"")
-        return 
-    if equals:
-        print(f"script      : {test_src}\nis equal to : {orig_src}\n")
-    else:
-        shutil.copyfile(orig_src, test_src)
-        print(f"current script  : {test_src}\nwere updated by : {orig_src}")
-
-
-def _get_zemax_exe():
-    available_discs = (f'{d}:' for d in string.ascii_uppercase if os.path.exists(f'{d}:'))
-    for disk in available_discs:
-        for root, dirs, files in os.walk(disk):
-            for file in files:
-                if file == "zemax.exe":
-                    return file, os.path.join(root, file)
-    return "", ""
-
-
-def _get_zemax_scripts():
-    available_discs = (f'{d}:' for d in string.ascii_uppercase if os.path.exists(f'{d}:'))
-
-    def _get_dir():
-        for disk in available_discs:
-            for root, dirs, files in os.walk(disk):
-                if "Macros" not in root:
-                    continue
-                for file in files:
-                    if "ZPL" in file or "zpl" in file:
-                        return root
-        return ""
-    folder = _get_dir()
-    if folder:
-        return {(n, os.path.join(folder, n)) for n in os.listdir(folder)}
-    else:
-        return {}
-
-
-def _update_scripts(zmx_scripts_dst: Dict[str, str]):
-    abs_path = os.path.dirname(__file__)
-    zpl_scripts_src = {}  # (file name, absolute file path)
-    for root, dirs, files in os.walk(abs_path):
-        for file in files:
-            if file.endswith(("zpl", "ZPL")):
-                zpl_scripts_src.update({file: os.path.join(root, file)})
-    for src, dst in zip(zpl_scripts_src.values(), zmx_scripts_dst.values()):
-        _replace_file(src, dst)
-
-
-def _load_settings():
-    file_location = os.path.join(os.path.dirname(__file__), "zSettings.json")
-    try:
-        with open(file_location, "rt") as input_file:
-            raw_json = json.load(input_file)
-            zemax_exe = raw_json["zemaxExe"]
-            zemax_scripts = {k: v for k, v in raw_json["zemaxScripts"]}
-            return zemax_exe, zemax_scripts
-    except KeyError as ex:
-        os.remove(file_location)
-        print(ex)
-    except FileNotFoundError as ex:
-        print(ex)
-    return None, None
-
-
-def _save_settings(zemax_exe: str, zemax_scripts: Dict[str, str] ):
-    file_location = os.path.join(os.path.dirname(__file__), "zSettings.json")
-
-    def _str_2_dict(scripts: Dict[str, str]) -> str:
-        return ',\n'.join(f'\t\t[\"{k}\", \"{v}\"]'.replace('\\', '/') for k, v in scripts)
-
-    with open(file_location, "wt") as input_file:
-        zemax_exe = zemax_exe.replace('\\', '/')
-        print(f"{{\n"
-              f"\t\"zemaxExe\": \"{zemax_exe}\",\n"
-              f"\t\"zemaxScripts\": [\n{_str_2_dict(zemax_scripts)}\n\t]"
-              f"\n}}", file=input_file)
-
-
-def _search_zemax_dirs() -> Tuple[str, Dict[str, str]]:
-    zemax_exe, zemax_scripts = _load_settings()
-    if all((zemax_exe, zemax_scripts)):
-        return zemax_exe, zemax_scripts
-    zemax_exe, absolute_zemax_exe = _get_zemax_exe()
-    zemax_scripts = _get_zemax_scripts()
-    _save_settings(absolute_zemax_exe, zemax_scripts)
-    return os.path.join(zemax_exe, absolute_zemax_exe), zemax_scripts
 
 
 class TaskBuilder:
@@ -282,15 +180,19 @@ class TaskBuilder:
         return True
 
     def run_task(self) -> bool:
+        from concurrent.futures import ProcessPoolExecutor
         # TODO start up zemax.exe
         if not self.is_valid:
             return False
-        zmx_exe, zmx_scripts = _search_zemax_dirs()
-        state = all(map(bool, (zmx_exe, zmx_scripts)))
-        if state:
-            _update_scripts(zmx_scripts)
-            subprocess.run([zmx_exe, self._z_file_proto_src])
-        return state
+        t1 = Thread(
+            target=lambda: subprocess.run([os.environ["ZEMAX_EXE"], os.path.join(os.getcwd(), self._z_file_proto_src),
+                                           '-zpl=\'C:/Users/User/Documents/Zemax/Macros/READ_AND_COMPUTE.ZPL\'']),
+            daemon=True)
+        t1.start()
+        t1.join()
+        # import subprocess
+        # subprocess.run(["[PATH_TO_OPTICSTUDIO.EXE]", '-zpl="[FULL_PATH_TO_ZPL_FILE]"', '-v[ARG_NAME_1]="[value]"'])
+        return True
 
 # root: D:\Github\ZemaxUtils\Tasks\MonochromeDeformed\Task\
 # compute_settings: 1 0 0 0

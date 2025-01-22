@@ -206,6 +206,7 @@ def read_surfaces(scheme_node: Dict[str, Any]) -> Tuple[SurfaceParams, ...]:
         try:
             even_asph = tuple(float(v) for v in node['even_asph'])
         except (ValueError, KeyError) as _:
-            print(f'poly = [float(v) for v in node[\"poly\"]] value error... ')
+            ...
+            # print(f'poly = [float(v) for v in node[\"poly\"]] value error... ')
         scheme.append(SurfaceParams(surf_n, tilt, decenter, aperture, curvature, even_asph, zernike))
     return tuple(scheme)

@@ -1,0 +1,7 @@
+{
+    "file_src": "E:/GitHub/ZemaxUtils/ZemaxUtils/ZemaxSchemes/F_07g_04_Blenda_PI_Fin.ZMX",
+    "task_src": "E:/GitHub/ZemaxUtils/ZemaxUtils/TaskSettings/20_01_2025/20_01_2025_loops_no_rotation_220.json",
+    "task_dst": "E:/GitHub/ZemaxUtils/ZemaxUtils/TaskSettings/20_01_2025/task_20_01_2025_loops_no_rotation_220",
+    "task_items": [220],
+    "compute_options": ["common", "spot", "mtf", "psf", "proto_file"]
+}

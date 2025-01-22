@@ -1,9 +1,5 @@
 import os.path
-import pathlib
 from typing import Tuple
-
-import pylab as p
-
 from DocxBuilder.report import Report
 from ResultBuilder import *
 from TaskBuilder import *
@@ -105,7 +101,7 @@ def build_and_run_task_from_settings_list():
     Создаёт задачу на основе схемы прототипа и списка настроек.
     :return:
     """
-    z_file_src = os.path.join(os.getcwd(), r"ZemaxSchemes\F_07g_04_Blenda_PI_Fin.zmx")
+    z_file_src = os.path.join(os.getcwd(), r"ZemaxSchemes/F_07g_04_Blenda_PI_Fin.zmx")
     z_task_src = os.path.join(os.getcwd(), r"TaskSettings/15_01_2025/3_5676_3.json")
     z_task_dir = os.path.join(os.getcwd(), r"TaskSettings/15_01_2025/task-3_5676_3")
     task = TaskBuilder(z_file_src, z_task_src)
