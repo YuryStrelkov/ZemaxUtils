@@ -108,7 +108,7 @@ def _compute_task(task_location: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        for location in sys.argv:
+        for location in sys.argv[1:]:
             _compute_task(task_location=location)
     else:
         _compute_task(task_location="task.json")
